@@ -149,11 +149,11 @@ public class ParsingContext {
 	long pos;
 	long head_pos;
 	
-	final long getPosition() {
+	public final long getPosition() {
 		return this.pos;
 	}
 	
-	final void setPosition(long pos) {
+	public final void setPosition(long pos) {
 		this.pos = pos;
 	}
 	

@@ -2,7 +2,7 @@ package org.peg4d;
 
 import java.util.TreeMap;
 
-class ParsingRule {
+public class ParsingRule {
 	public final static int LexicalRule   = 0;
 	public final static int ObjectRule    = 1;
 	public final static int OperationRule = 1 << 1;
@@ -26,6 +26,10 @@ class ParsingRule {
 		this.ruleName = ruleName;
 		this.expr = e;
 		this.type = ParsingRule.typeOf(ruleName);
+	}
+
+	public String getRuleName() {
+		return this.ruleName;
 	}
 	
 	final String getUniqueName() {

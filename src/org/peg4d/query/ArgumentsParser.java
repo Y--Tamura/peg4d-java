@@ -46,7 +46,7 @@ public class ArgumentsParser {
 	public ArgumentsParser addOption(String shortName, String longName, 
 	                                 boolean hasArg, String description, 
 	                                 OptionListener listener) throws IllegalArgumentException {
-		return this.addOption(shortName, longName, hasArg, description, false, listener);
+		return this.addOption(shortName, longName, hasArg, description, false, false, listener);
 	}
 
 	/**
@@ -66,13 +66,13 @@ public class ArgumentsParser {
 	 * @throws IllegalArgumentException
 	 */
 	public ArgumentsParser addOption(String shortName, String longName, 
-            boolean hasArg, String description, boolean require,
+            boolean hasArg, String description, boolean require, boolean repeat,
             OptionListener listener) throws IllegalArgumentException {
-		return this.addOption(shortName, longName, hasArg, description, require, listener, false);
+		return this.addOption(shortName, longName, hasArg, description, require, repeat, listener, false);
 	}
 
 	protected ArgumentsParser addOption(String shortName, String longName, 
-            boolean hasArg, String description, boolean require,
+            boolean hasArg, String description, boolean require, boolean repeat,
             OptionListener listener, boolean asHelp) throws IllegalArgumentException {
 		// check short name format
 		Optional<String> actualShortName = Optional.empty();
@@ -100,7 +100,7 @@ public class ArgumentsParser {
 
 		// add option
 		Option option = new Option(actualShortName, actualLongName, hasArg, 
-				Optional.ofNullable(listener), Optional.ofNullable(description), require);
+				Optional.ofNullable(listener), Optional.ofNullable(description), require, repeat);
 		this.optionList.add(option);
 		actualShortName.ifPresent(key -> this.optionMap.put(key, option));
 		actualLongName.ifPresent(key -> this.optionMap.put(key, option));
@@ -131,7 +131,7 @@ public class ArgumentsParser {
 
 	public ArgumentsParser addHelp(String shortName, String longName, boolean hasArg, 
              String description, OptionListener listener) throws IllegalArgumentException {
-		return this.addOption(shortName, longName, hasArg, description, false, listener, true);
+		return this.addOption(shortName, longName, hasArg, description, false, false, listener, true);
 	}
 
 	public void parseAndInvokeAction(String[] args) throws IllegalArgumentException {
@@ -146,13 +146,17 @@ public class ArgumentsParser {
 		}
 
 		final Set<Option> foundOptionSet = new HashSet<>();
+		String lastOptionSymbol = null;
 		for(int i = 0; i < size; i++) {
 			String optionSymbol = args[i];
 			Option option = this.optionMap.get(optionSymbol);
 			if(option == null) {
-				throw new IllegalArgumentException("illegal option: " + optionSymbol);
+				option = this.optionMap.get(lastOptionSymbol);
+				if(option == null) throw new IllegalArgumentException("illegal option: " + optionSymbol);				
+				optionSymbol = lastOptionSymbol;
+				i--;
 			}
-			if(foundOptionSet.contains(option)) {
+			if(!option.isRepeatableOption() && foundOptionSet.contains(option)) {
 				throw new IllegalArgumentException("duplicated option: " + optionSymbol);
 			}
 			Optional<String> arg = Optional.empty();
@@ -172,6 +176,7 @@ public class ArgumentsParser {
 				final Optional<String> helpArg = arg;
 				option.getListener().ifPresent(a -> a.invoke(helpArg));
 			}
+			lastOptionSymbol = optionSymbol;
 		}
 
 		// check require option
@@ -230,6 +235,7 @@ public class ArgumentsParser {
 		protected final Optional<OptionListener> listener;
 		protected final Optional<String> description;
 		protected final boolean require;
+		protected final boolean repeat;
 
 		protected final String usage;
 
@@ -245,15 +251,17 @@ public class ArgumentsParser {
 		 * @param description
 		 * not null
 		 *  @param require
+		 *  @param repeat
 		 */
 		public Option(Optional<String> shortName, Optional<String> longName, boolean hasArg, 
-		              Optional<OptionListener> listener, Optional<String> description, boolean require) {
+		              Optional<OptionListener> listener, Optional<String> description, boolean require, boolean repeat) {
 			this.shortName = shortName;
 			this.longName = longName;
 			this.hasArg = hasArg;
 			this.listener = listener;
 			this.description = description;
 			this.require = require;
+			this.repeat = repeat;
 
 			final StringBuilder sBuilder = new StringBuilder();
 			this.shortName.ifPresent(n -> sBuilder.append(n));
@@ -290,6 +298,10 @@ public class ArgumentsParser {
 		public boolean isRequiredOption() {
 			return this.require;
 		}
+		
+		public boolean isRepeatableOption() {
+			return this.repeat;
+		}
 
 		public String getUsage() {
 			return this.usage;
@@ -297,7 +309,7 @@ public class ArgumentsParser {
 	}
 
 	@FunctionalInterface
-	protected static interface OptionListener {
+	public static interface OptionListener {
 		public void invoke(Optional<String> arg);
 	}
 }

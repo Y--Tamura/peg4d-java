@@ -93,7 +93,7 @@ public class Grammar {
 					Main.printVerbose("duplicated: ", key + " ");
 				}
 				Main.printVerbose("importing: ", rule);
-				this.ruleMap.put(key, rule);
+				this.setRule(key, rule);
 			}
 		}
 	}
