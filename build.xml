@@ -5,6 +5,7 @@
 	<property name="build_dir"  value="build" />
 	<property name="root_dir"   value="." />
 	<property name="jline_jar"  value="ext/jline-1.0.jar" />
+
 	<property name="lib.cobertura.dir" location="/opt/java/cobertura" />
 	<property name="lib.pmd.dir" location="/opt/java/pmd" />
 
@@ -16,6 +17,12 @@
 		<available file="${lib.pmd.dir}" />
 	</condition>
 
+	<property name="neo4j_dir"  value="/usr/local/Cellar/neo4j/2.1.5/libexec/lib" />
+	<path id="neo4j_jars">
+		<fileset dir="${neo4j_dir}" includes="*.jar"/>
+	</path>
+	<pathconvert property="infer_classpath" refid="neo4j_jars" pathsep=" " />
+
 	<!-- ================================== -->
 	<!--                BUILD               -->
 	<!-- ================================== -->
@@ -24,6 +31,11 @@
 		<javac fork="true" srcdir="${source_dir}" destdir="${build_dir}" target="1.8" source="1.8"
 			debug="yes" debuglevel="lines,vars,source" includeantruntime="false">
 			<classpath path="${jline_jar}" />
+			<classpath>
+				<fileset dir="${neo4j_dir}">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
 			<include name="**/*.java" />
 			<exclude name="**/*Test.java" />
 			<compilerarg value="-Xlint:deprecation" />
@@ -40,7 +52,8 @@
 			<fileset dir="." includes="lib/**" />
 			<exclude name="**/*Test.class" />
 			<manifest>
-				<attribute name="Main-Class" value="org.peg4d.Main" />
+				<attribute name="Main-Class" value="org.peg4d.infer.Main" />
+				<attribute name="Class-Path" value="${infer_classpath}" />
 			</manifest>
 			<zipfileset src="${jline_jar}" />
 		</jar>
