@@ -7,12 +7,10 @@ import org.peg4d.query.ArgumentsParser;
 public class Main {
 	public static void main(String args[]) {
 		Options options = Options.createFromCommandLineArguments(args);
-		System.out.println(options);
-
+		if (Options.verbose) System.out.println(options);
 		Engine engine = new Engine();
-		engine.addExternalGrammar(options.grammars);
-		engine.infer(options.target);
-
+		engine.addExternalGrammar(options.getGrammars());
+		engine.infer(options.getTarget());
 		return;
 	}
 
@@ -34,17 +32,20 @@ public class Main {
 }
 
 class Options {
-	public ArrayList<String> grammars = new ArrayList<>();
-	public String target = null;
-
+	private ArrayList<String> grammars = new ArrayList<>();
+	private String target = null;
+	public static boolean verbose = false;
+	
 	static public Options createFromCommandLineArguments(String args[]) {
 		Options newOptions = new Options();
 		ArgumentsParser argsParser = new ArgumentsParser();
 		argsParser.addDefaultAction(s -> argsParser.printHelpBeforeExit(System.err, 1))
 		.addHelp("h", "help", false, "show this help message", 
 				s -> argsParser.printHelpBeforeExit(System.out, 0))
+		.addOption("v", "verbose", false, "verbose debug info",
+				s -> Options.verbose = true)
 		.addOption("g", "grammar", true, "peg definition of target data format", true, true,
-				s -> newOptions.grammars.add(s.get()))
+				s -> newOptions.getGrammars().add(s.get()))
 		.addOption("t", "target", true, "target data file", true, false, 
 				s -> newOptions.target = s.get());
 		try {
@@ -60,8 +61,16 @@ class Options {
 	@Override
 	public String toString() {
 		String ret = "";
-		ret += "grammars:" + this.grammars.toString() + ", ";
-		ret += "target:" + this.target;
+		ret += "grammars:" + this.getGrammars().toString() + ", ";
+		ret += "target:" + this.getTarget();
 		return ret;
+	}
+
+	public ArrayList<String> getGrammars() {
+		return grammars;
+	}
+
+	public String getTarget() {
+		return target;
 	}
 }

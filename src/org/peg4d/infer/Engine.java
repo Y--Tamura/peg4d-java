@@ -21,7 +21,7 @@ public class Engine {
 	public Engine(Grammar grammar) {
 		this.grammar = grammar;
 	}
-	
+
 	public void addExternalGrammar(String pathToGrammar) {
 		grammar.importGrammar(pathToGrammar);
 		grammar.verifyRules();
@@ -31,7 +31,7 @@ public class Engine {
 			this.addExternalGrammar(pathToGrammar);
 		}
 	}
-	
+
 /*
 	public void infer(ParsingSource[] sources) {
 		for (int i = 0; i < sources.length; i++) {
@@ -49,15 +49,19 @@ public class Engine {
 			String ruleName = rule.getRuleName();
 			this.collectRule(context, source, ruleName, lattice);
 		}
+		if (Options.verbose) {
+//			lattice.dump();
+			lattice.dumpToGraphviz();
+		}
 		ArrayList<ArrayList<String>> formats = lattice.generateShortestPath();
 		for (ArrayList<String> format : formats) {
 			this.structure(format, 2);
 		}
 	}
-	
+
 	private void collectRule(ParsingContext context, ParsingSource source, String ruleName, LatticeNeo4j lattice) {
 		long startPos = context.getPosition();
-		while (source.length() > startPos) { 
+		while (source.length() > startPos) {
 			context.parse(this.grammar, ruleName);
 			if (context.isFailure()) {
 				startPos++;
@@ -67,16 +71,15 @@ public class Engine {
 				long endPos = context.getPosition();
 				//context.setPosition(endPos);
 				lattice.appendMatchedRule(ruleName, startPos, endPos);
-				System.out.println(ruleName + "[" + startPos + ", " + endPos + "]");
 				startPos = endPos;
 			}
 		}
 	}
-	
+
 	private void structure(ArrayList<String> format, int ngram) {
 		HashMap<Pair<String, String>, Long> m = new HashMap<>();
 		String elem1 = null, elem2 = null;
-		Pair<String, String> key = null; 
+		Pair<String, String> key = null;
 		for (int i = 0; i < format.size() - (ngram - 1); i++) {
 			elem1 = format.get(i);
 			elem2 = format.get(i + 1);
@@ -87,9 +90,7 @@ public class Engine {
 			else {
 				m.put(key, 1L);
 			}
-			System.out.println(key);
 		}
-		System.out.println(m);
 	}
 }
 
