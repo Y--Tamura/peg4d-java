@@ -78,7 +78,7 @@ public class LatticeNeo4j implements Lattice {
 		if (pos == null) throw new IllegalArgumentException("invalid position is given");
 		if ((ret = this.nodeMap.get(pos)) == null) {
 			ret = this.graphDb.createNode();
-			PM.setPos(ret, pos);
+			PropertyManipulator.setPos(ret, pos);
 			Map.Entry<Long, Node> tmp = null;
 			if ((tmp = this.nodeMap.lowerEntry(pos)) != null) {
 				this.relFactory.createNaturalRel(tmp.getValue(), ret);
@@ -114,10 +114,10 @@ public class LatticeNeo4j implements Lattice {
 							format.add("\"" + prev + "\"");
 							prev = "";
 						}
-						format.add(PM.getRule(rel));
+						format.add(PropertyManipulator.getRule(rel));
 					}
 					else if (rel.hasProperty(Const.SYMBOL)) {
-						prev += unEscapeString(PM.getText(rel));
+						prev += unEscapeString(PropertyManipulator.getText(rel));
 					}
 					else {
 						throw new RuntimeException("FIX ME!! unknown relation");
@@ -157,16 +157,16 @@ public class LatticeNeo4j implements Lattice {
 			long size = 0;
 			for (Path path : t) {
 				startNode = path.endNode();
-				startLabel = Long.toString(PM.getPos(startNode));
+				startLabel = Long.toString(PropertyManipulator.getPos(startNode));
 				for (Relationship rel : startNode.getRelationships(Direction.OUTGOING)) {
 					endNode = rel.getEndNode();
-					endLabel = Long.toString(PM.getPos(endNode));
-					size = PM.getSize(rel);
+					endLabel = Long.toString(PropertyManipulator.getPos(endNode));
+					size = PropertyManipulator.getSize(rel);
 					if (rel.isType(RelType.NATURAL)) {
-						text = unEscapeString(PM.getText(rel));
+						text = unEscapeString(PropertyManipulator.getText(rel));
 					}
 					else if (rel.isType(RelType.RULE) || rel.isType(RelType.RULES)) {
-						text = PM.getRule(rel);
+						text = PropertyManipulator.getRule(rel);
 					}
 					else {
 						text = "unknown";
@@ -304,16 +304,16 @@ class RelationshipFactory {
 		else {
 			throw new RuntimeException("invalid value of pos : " + tmp.toString() + " isn't long");
 		}
-		PM.setStartPos(ret, startPos);
-		PM.setEndPos(ret, endPos);
-		PM.setText(ret, this.source.substring(startPos, endPos));
+		PropertyManipulator.setStartPos(ret, startPos);
+		PropertyManipulator.setEndPos(ret, endPos);
+		PropertyManipulator.setText(ret, this.source.substring(startPos, endPos));
 		switch (type) {
 		case NATURAL:
-			PM.setSize(ret, endPos - startPos);
+			PropertyManipulator.setSize(ret, endPos - startPos);
 			break;
 		case RULE:
 		case RULES:
-			PM.setSize(ret, 1);
+			PropertyManipulator.setSize(ret, 1);
 			break;
 		default:
 			throw new RuntimeException("unknown RelType : " + type.toString());
@@ -326,18 +326,18 @@ class RelationshipFactory {
 	}
 	Relationship createRuleRel(Node startNode, Node endNode, String ruleName) {
 		Relationship ret = this.createRelCommon(startNode, endNode, RelType.RULE);
-		PM.setRule(ret, ruleName);
+		PropertyManipulator.setRule(ret, ruleName);
 		return ret;
 	}
 	Relationship createRulesRel(Node startNode, Node endNode, String[] rules) {
 		Relationship ret = this.createRelCommon(startNode, endNode, RelType.RULES);
-		PM.setRule(ret, Arrays.toString(rules));
-		PM.setRules(ret, rules);
+		PropertyManipulator.setRule(ret, Arrays.toString(rules));
+		PropertyManipulator.setRules(ret, rules);
 		return ret;
 	}
 }
 
-class PM { //Property Manipulator
+class PropertyManipulator {
 	final static public String S_TEXT = "symbol";
 	final static public String S_RULE = "rule";
 	final static public String S_RULES = "rules";
