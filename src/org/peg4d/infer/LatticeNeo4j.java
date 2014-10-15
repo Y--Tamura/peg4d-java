@@ -3,7 +3,11 @@ package org.peg4d.infer;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import org.neo4j.graphalgo.GraphAlgoFactory;
@@ -94,7 +98,11 @@ public class LatticeNeo4j {
 	public ArrayList<ArrayList<String>> generateShortestPath() {
 		ArrayList<ArrayList<String>> ret = new ArrayList<>();
 		try (Transaction tx = this.graphDb.beginTx()) {
-			PathFinder<WeightedPath> finder = GraphAlgoFactory.dijkstra(PathExpanders.forDirection(Direction.OUTGOING), Const.SIZE);
+			PathFinder<WeightedPath> finder = GraphAlgoFactory.dijkstra(
+					PathExpanders.forTypesAndDirections(
+							RelType.NATURAL, Direction.OUTGOING,
+							RelType.RULES, Direction.OUTGOING
+							), Const.SIZE);
 			Iterable<WeightedPath> paths = finder.findAllPaths(this.bosNode, this.eosNode);
 			ArrayList<String> format = null;
 			String prev = null;
@@ -107,7 +115,7 @@ public class LatticeNeo4j {
 							format.add("\"" + prev + "\"");
 							prev = "";
 						}
-						format.add(rel.getProperty(Const.RULE).toString());
+						format.add(Arrays.toString((String[])rel.getProperty(Const.RULE)));
 					}
 					else if (rel.hasProperty(Const.SYMBOL)) {
 						prev += rel.getProperty(Const.SYMBOL).toString().replace("\n", "\\n");
@@ -124,39 +132,24 @@ public class LatticeNeo4j {
 		}
 		return ret;
 	}
-	
-	private Traverser traverseNatural(final Node startNode, boolean includeStartNode)
-	{
-	    TraversalDescription td = graphDb.traversalDescription()
-	            .breadthFirst()
-	            .relationships(RelTypes.NATURAL, Direction.OUTGOING);
-	    if (!includeStartNode) td = td.evaluator(Evaluators.includeWhereLastRelationshipTypeIs(RelTypes.NATURAL));
-	    return td.traverse(startNode);
-	}
-	private Traverser traverseRule(final Node startNode, boolean includeStartNode)
-	{
-	    TraversalDescription td = graphDb.traversalDescription()
-	            .breadthFirst()
-	            .relationships(RelTypes.RULE, Direction.OUTGOING);
-	    if (!includeStartNode) td = td.evaluator(Evaluators.includeWhereLastRelationshipTypeIs(RelTypes.RULE));
-	    return td.traverse(startNode);
-	}
-	private Traverser traverseAll(final Node startNode, boolean includeStartNode)
-	{
-	    TraversalDescription td = graphDb.traversalDescription()
-	            .breadthFirst()
-	            .relationships(RelTypes.RULE, Direction.OUTGOING)
-	    		.relationships(RelTypes.NATURAL, Direction.OUTGOING);
-	    if (!includeStartNode) td = td.evaluator(Evaluators.includeWhereLastRelationshipTypeIs(RelTypes.NATURAL, RelTypes.RULE));
-	    return td.traverse(startNode);
-	}
 
+	private Traverser traverse(final Node startNode, boolean includeStartNode, EnumSet<RelType> types) {
+	    TraversalDescription td = graphDb.traversalDescription()
+	            .breadthFirst()
+	    		.relationships(RelType.NATURAL, Direction.OUTGOING)
+	            .relationships(RelType.RULE, Direction.OUTGOING)
+	    		.relationships(RelType.RULES, Direction.OUTGOING);
+	    if (!includeStartNode) td = td.evaluator(Evaluators.includeWhereLastRelationshipTypeIs(RelType.NATURAL, RelType.RULE, RelType.RULES));
+	    return td.traverse(startNode);
+	}
+	
+	
 	public void dump() {
 		Traverser t = null;
 		try (
 			Transaction tx = this.graphDb.beginTx();
 		) {
-			t = this.traverseAll(this.bosNode, true);
+			t = this.traverse(this.bosNode, true, EnumSet.of(RelType.NATURAL, RelType.RULE, RelType.RULES));
 			Node node0 = null, node1 = null;
 			String label0 = null, label1 = null;
 			for (Path path : t) {
@@ -170,10 +163,10 @@ public class LatticeNeo4j {
 					System.out.print("\"" + label1 + "\"");
 					System.out.print(" [label = ");
 					System.out.print("\"" + rel.getType().name() + ":");
-					if (rel.isType(RelTypes.NATURAL)) {
+					if (rel.isType(RelType.NATURAL)) {
 						System.out.print(unEscapeString(rel.getProperty(Const.SYMBOL).toString()) + "\""); 
 					}
-					else if (rel.isType(RelTypes.RULE)) {
+					else if (rel.isType(RelType.RULE) || rel.isType(RelType.RULES)) {
 						System.out.print(rel.getProperty(Const.RULE) + "\"");
 					}
 					else {
@@ -201,7 +194,7 @@ public class LatticeNeo4j {
 			FileWriter writer = new FileWriter(fileName);
 		) {
 			writer.write("digraph {\n");
-			t = this.traverseAll(this.bosNode, true);
+			t = this.traverse(this.bosNode, true, EnumSet.of(RelType.NATURAL, RelType.RULE, RelType.RULES));
 			Node node0 = null, node1 = null;
 			String label0 = null, label1 = null;
 			for (Path path : t) {
@@ -215,11 +208,14 @@ public class LatticeNeo4j {
 					writer.write("\"" + label1 + "\"");
 					writer.write(" [label = ");
 					writer.write("\"" + rel.getType().name() + ":");
-					if (rel.isType(RelTypes.NATURAL)) {
+					if (rel.isType(RelType.NATURAL)) {
 						writer.write(unEscapeString(rel.getProperty(Const.SYMBOL).toString()) + "\""); 
 					}
-					else if (rel.isType(RelTypes.RULE)) {
+					else if (rel.isType(RelType.RULE)) {
 						writer.write(rel.getProperty(Const.RULE) + "\"");
+					}
+					else if (rel.isType(RelType.RULES)) {
+						writer.write(Arrays.toString((String[])rel.getProperty(Const.RULE)) + "\"");
 					}
 					else {
 						System.out.println("error : unknown rel type");
@@ -233,6 +229,37 @@ public class LatticeNeo4j {
 			writer.write("}");
 		} catch (IOException e) {
 			System.out.println("error : dump log.dot failed");
+		}
+	}
+	
+	public void compactRules() {
+		Traverser t = null;
+		try (
+			Transaction tx = this.graphDb.beginTx();
+		) {
+			t = this.traverse(this.bosNode, true, EnumSet.of(RelType.NATURAL, RelType.RULE, RelType.RULES));
+			Node startNode = null, endNode = null;
+			ArrayList<String> ruleList = null;
+			HashMap<Node, ArrayList<String>> relMap = null;
+			for (Path path : t) {
+				startNode = path.endNode();
+				relMap = new HashMap<>();
+				for (Relationship rel : startNode.getRelationships(Direction.OUTGOING, RelType.RULE)) {
+					endNode = rel.getEndNode();
+					if ((ruleList = relMap.get(endNode)) != null) {
+						ruleList.add(rel.getProperty(Const.RULE).toString());
+					}
+					else {
+						ruleList = new ArrayList<>();
+						ruleList.add(rel.getProperty(Const.RULE).toString());
+						relMap.put(endNode, ruleList);
+					}
+				}
+				for (Entry<Node, ArrayList<String>> kv : relMap.entrySet()) {
+					relFactory.createRulesRel(startNode, kv.getKey(), kv.getValue().toArray(new String[0]));
+				}
+			}
+			tx.success();
 		}
 	}
 
@@ -254,10 +281,11 @@ public class LatticeNeo4j {
 	}
 }
 
-enum RelTypes implements RelationshipType
+enum RelType implements RelationshipType
 {
 	NATURAL,
-	RULE
+	RULE,
+	RULES //compacted rules
 }
 
 class Const {
@@ -283,7 +311,7 @@ class RelationshipFactory {
 		this.source = source;
 	}
 
-	private Relationship createRelCommon(Node startNode, Node endNode, RelTypes type) {
+	private Relationship createRelCommon(Node startNode, Node endNode, RelType type) {
 		Relationship ret = startNode.createRelationshipTo(endNode, type);
 		Object tmp = null;
 		long startPos, endPos;
@@ -307,21 +335,26 @@ class RelationshipFactory {
 			ret.setProperty(Const.SIZE, endPos - startPos);
 			break;
 		case RULE:
+		case RULES:
 			ret.setProperty(Const.SIZE, 1);
 			break;
 		default:
 			throw new RuntimeException("unknown RelType : " + type.toString());
 		}
-		
 		return ret;
 	}
 	
 	Relationship createNaturalRel(Node startNode, Node endNode) {
-		return this.createRelCommon(startNode, endNode, RelTypes.NATURAL);
+		return this.createRelCommon(startNode, endNode, RelType.NATURAL);
 	}
 	Relationship createRuleRel(Node startNode, Node endNode, String ruleName) {
-		Relationship ret = this.createRelCommon(startNode, endNode, RelTypes.RULE);
+		Relationship ret = this.createRelCommon(startNode, endNode, RelType.RULE);
 		ret.setProperty(Const.RULE, ruleName);
+		return ret;
+	}
+	Relationship createRulesRel(Node startNode, Node endNode, String[] rules) {
+		Relationship ret = this.createRelCommon(startNode, endNode, RelType.RULES);
+		ret.setProperty(Const.RULE, rules);
 		return ret;
 	}
 }

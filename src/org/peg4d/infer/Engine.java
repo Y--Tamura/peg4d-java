@@ -49,6 +49,7 @@ public class Engine {
 			String ruleName = rule.getRuleName();
 			this.collectRule(context, source, ruleName, lattice);
 		}
+		lattice.compactRules();
 		if (Options.verbose) {
 			lattice.dump();
 			lattice.dumpToGraphviz();
