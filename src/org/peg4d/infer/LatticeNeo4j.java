@@ -2,7 +2,6 @@ package org.peg4d.infer;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
@@ -32,7 +31,7 @@ public class LatticeNeo4j {
 	private TreeMap<Long, Node> nodeMap;
 
 	LatticeNeo4j(ParsingSource source) {
-		this(source, true);
+		this(source, false);
 	}
 	LatticeNeo4j(ParsingSource source, boolean initializeAllSource) {
 		this.nodeMap = new TreeMap<>();
@@ -43,20 +42,25 @@ public class LatticeNeo4j {
 			tx.success();
 		}
 		if (initializeAllSource) {
-			Node current = this.bosNode, next = null;
 			try (Transaction tx = this.graphDb.beginTx()) {
 				for (long i = 0; i < source.length(); i++) {
-					next = this.getOrCreateNode(i + 1);
-//					this.relFactory.createNaturalRel(current, next);
-					current = next;
+					this.getOrCreateNode(i + 1);
 				}
-				this.eosNode = next;
 				tx.success();
 			}
 		}
 	}
 
 	public void appendMatchedRule(String ruleName, long startPos, long endPos) {
+		if (Options.verbose) {
+			System.out.print(ruleName);
+			System.out.print("[");
+			System.out.print(startPos);
+			System.out.print(":");
+			System.out.print(endPos);
+			System.out.print("]");
+			System.out.print("\n");
+		}
 		try (Transaction tx = this.graphDb.beginTx()) {
 			Node startNode = this.getOrCreateNode(startPos);
 			Node endNode = this.getOrCreateNode(endPos);
@@ -76,9 +80,12 @@ public class LatticeNeo4j {
 			if ((tmp = this.nodeMap.lowerEntry(pos)) != null) {
 				this.relFactory.createNaturalRel(tmp.getValue(), ret);
 			}
-//			if ((tmp = this.nodeMap.higherEntry(pos)) != null) {
-//				this.relFactory.createNaturalRel(ret, tmp.getValue());
-//			}
+			if ((tmp = this.nodeMap.higherEntry(pos)) != null) {
+				this.relFactory.createNaturalRel(ret, tmp.getValue());
+			}
+			else {
+				this.eosNode = ret;
+			}
 			this.nodeMap.put(pos, ret);
 		}
 		return ret;
@@ -143,6 +150,43 @@ public class LatticeNeo4j {
 	    if (!includeStartNode) td = td.evaluator(Evaluators.includeWhereLastRelationshipTypeIs(RelTypes.NATURAL, RelTypes.RULE));
 	    return td.traverse(startNode);
 	}
+
+	public void dump() {
+		Traverser t = null;
+		try (
+			Transaction tx = this.graphDb.beginTx();
+		) {
+			t = this.traverseAll(this.bosNode, true);
+			Node node0 = null, node1 = null;
+			String label0 = null, label1 = null;
+			for (Path path : t) {
+				node0 = path.endNode();
+				label0 = node0.getProperty(Const.POS, "error_pos").toString();
+				for (Relationship rel : node0.getRelationships(Direction.OUTGOING)) {
+					node1 = rel.getEndNode();
+					label1 = node1.getProperty(Const.POS, "error_pos").toString();
+					System.out.print("\"" + label0 + "\"");
+					System.out.print(" -> ");
+					System.out.print("\"" + label1 + "\"");
+					System.out.print(" [label = ");
+					System.out.print("\"" + rel.getType().name() + ":");
+					if (rel.isType(RelTypes.NATURAL)) {
+						System.out.print(unEscapeString(rel.getProperty(Const.SYMBOL).toString()) + "\""); 
+					}
+					else if (rel.isType(RelTypes.RULE)) {
+						System.out.print(rel.getProperty(Const.RULE) + "\"");
+					}
+					else {
+						System.out.print("error : unknown rel type");
+					}
+					System.out.print("]; //");
+					System.out.print(Const.SYMBOL + ":" + unEscapeString(rel.getProperty(Const.SYMBOL).toString()) + ", ");
+					System.out.print(Const.SIZE + ":" + rel.getProperty(Const.SIZE));
+					System.out.print("\n");
+				}
+			}
+		}
+	}
 	
 	public void dumpToGraphviz() {
 		this.dumpToGraphviz(Const.dotPath, this.bosNode);
@@ -152,9 +196,10 @@ public class LatticeNeo4j {
 	}
 	public void dumpToGraphviz(String fileName, Node startNode) {
 		Traverser t = null;
-		FileWriter writer = null;
-		try (Transaction tx = this.graphDb.beginTx()) {
-			writer = new FileWriter(fileName);
+		try (
+			Transaction tx = this.graphDb.beginTx();
+			FileWriter writer = new FileWriter(fileName);
+		) {
 			writer.write("digraph {\n");
 			t = this.traverseAll(this.bosNode, true);
 			Node node0 = null, node1 = null;
@@ -186,9 +231,8 @@ public class LatticeNeo4j {
 				}
 			}
 			writer.write("}");
-			writer.close();
 		} catch (IOException e) {
-			System.out.println("error : cannot dump log.dot");
+			System.out.println("error : dump log.dot failed");
 		}
 	}
 

@@ -50,7 +50,7 @@ public class Engine {
 			this.collectRule(context, source, ruleName, lattice);
 		}
 		if (Options.verbose) {
-//			lattice.dump();
+			lattice.dump();
 			lattice.dumpToGraphviz();
 		}
 		ArrayList<ArrayList<String>> formats = lattice.generateShortestPath();
