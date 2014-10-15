@@ -2,6 +2,7 @@ package org.peg4d.infer;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -18,6 +19,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.PathExpanders;
+import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
@@ -27,28 +29,32 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Traverser;
 import org.peg4d.ParsingSource;
 
-public class LatticeNeo4j {
+public class LatticeNeo4j implements Lattice {
 	private GraphDatabaseService graphDb;
 	private RelationshipFactory relFactory;
+	private TreeMap<Long, Node> nodeMap;
 	private Node bosNode;
 	private Node eosNode;
-	private TreeMap<Long, Node> nodeMap;
+	
+	final static public String DB_PATH = "/usr/local/Cellar/neo4j/2.1.5/libexec/data/graph.db";
+	final static public String LOG_FILE = "log.dot";
 
 	LatticeNeo4j(ParsingSource source) {
 		this(source, false);
 	}
 	LatticeNeo4j(ParsingSource source, boolean initializeAllSource) {
-		this.nodeMap = new TreeMap<>();
+		this.graphDb = new GraphDatabaseFactory().newEmbeddedDatabase(DB_PATH);
 		this.relFactory = new RelationshipFactory(source);
-		this.graphDb = new GraphDatabaseFactory().newEmbeddedDatabase(Const.dbPath);
+		this.nodeMap = new TreeMap<>();
 		try (Transaction tx = this.graphDb.beginTx()) {
 			this.bosNode = this.getOrCreateNode(0L);
+			this.bosNode.setProperty("creation time", ZonedDateTime.now().toString());
 			tx.success();
 		}
 		if (initializeAllSource) {
 			try (Transaction tx = this.graphDb.beginTx()) {
-				for (long i = 0; i < source.length(); i++) {
-					this.getOrCreateNode(i + 1);
+				for (long i = 1; i < source.length(); i++) {
+					this.getOrCreateNode(i);
 				}
 				tx.success();
 			}
@@ -57,13 +63,7 @@ public class LatticeNeo4j {
 
 	public void appendMatchedRule(String ruleName, long startPos, long endPos) {
 		if (Options.verbose) {
-			System.out.print(ruleName);
-			System.out.print("[");
-			System.out.print(startPos);
-			System.out.print(":");
-			System.out.print(endPos);
-			System.out.print("]");
-			System.out.print("\n");
+			System.out.printf("%s[%d, %d]%n", ruleName, startPos, endPos);
 		}
 		try (Transaction tx = this.graphDb.beginTx()) {
 			Node startNode = this.getOrCreateNode(startPos);
@@ -75,11 +75,10 @@ public class LatticeNeo4j {
 
 	private Node getOrCreateNode(Long pos) {
 		Node ret = null;
-		if (pos == null) throw new RuntimeException("pos is null");
+		if (pos == null) throw new IllegalArgumentException("invalid position is given");
 		if ((ret = this.nodeMap.get(pos)) == null) {
 			ret = this.graphDb.createNode();
-			//ret.setProperty("creation time", ZonedDateTime.now().toString());
-			ret.setProperty("pos", pos);
+			PM.setPos(ret, pos);
 			Map.Entry<Long, Node> tmp = null;
 			if ((tmp = this.nodeMap.lowerEntry(pos)) != null) {
 				this.relFactory.createNaturalRel(tmp.getValue(), ret);
@@ -115,10 +114,10 @@ public class LatticeNeo4j {
 							format.add("\"" + prev + "\"");
 							prev = "";
 						}
-						format.add(Arrays.toString((String[])rel.getProperty(Const.RULE)));
+						format.add(PM.getRule(rel));
 					}
 					else if (rel.hasProperty(Const.SYMBOL)) {
-						prev += rel.getProperty(Const.SYMBOL).toString().replace("\n", "\\n");
+						prev += unEscapeString(PM.getText(rel));
 					}
 					else {
 						throw new RuntimeException("FIX ME!! unknown relation");
@@ -133,102 +132,79 @@ public class LatticeNeo4j {
 		return ret;
 	}
 
+	private Traverser traverse(boolean includeStartNode, EnumSet<RelType> types) {
+		return this.traverse(this.bosNode, includeStartNode, types);
+	}
 	private Traverser traverse(final Node startNode, boolean includeStartNode, EnumSet<RelType> types) {
-	    TraversalDescription td = graphDb.traversalDescription()
-	            .breadthFirst()
-	    		.relationships(RelType.NATURAL, Direction.OUTGOING)
-	            .relationships(RelType.RULE, Direction.OUTGOING)
-	    		.relationships(RelType.RULES, Direction.OUTGOING);
+	    TraversalDescription td = graphDb.traversalDescription().breadthFirst();
 	    if (!includeStartNode) td = td.evaluator(Evaluators.includeWhereLastRelationshipTypeIs(RelType.NATURAL, RelType.RULE, RelType.RULES));
+	    for (RelType type : types) {
+	    	td = td.relationships(type, Direction.OUTGOING);
+	    }
 	    return td.traverse(startNode);
 	}
 	
+	public void dump(StringWriter writer) {
+		//this.dump(writer, EnumSet.allOf(RelType.class), EnumSet.of(RelType.NATURAL, RelType.RULE, RelType.RULES));
+		this.dump(writer, EnumSet.allOf(RelType.class), EnumSet.of(RelType.NATURAL, RelType.RULES));
+	}
 	
-	public void dump() {
-		Traverser t = null;
-		try (
-			Transaction tx = this.graphDb.beginTx();
-		) {
-			t = this.traverse(this.bosNode, true, EnumSet.of(RelType.NATURAL, RelType.RULE, RelType.RULES));
-			Node node0 = null, node1 = null;
-			String label0 = null, label1 = null;
+	public void dump(StringWriter writer, EnumSet<RelType> traverse, EnumSet<RelType> print) {
+		try (Transaction tx = this.graphDb.beginTx()) {
+			Traverser t = this.traverse(true, traverse);
+			Node startNode = null, endNode = null;
+			String startLabel = null, endLabel = null, text = null;
+			long size = 0;
 			for (Path path : t) {
-				node0 = path.endNode();
-				label0 = node0.getProperty(Const.POS, "error_pos").toString();
-				for (Relationship rel : node0.getRelationships(Direction.OUTGOING)) {
-					node1 = rel.getEndNode();
-					label1 = node1.getProperty(Const.POS, "error_pos").toString();
-					System.out.print("\"" + label0 + "\"");
-					System.out.print(" -> ");
-					System.out.print("\"" + label1 + "\"");
-					System.out.print(" [label = ");
-					System.out.print("\"" + rel.getType().name() + ":");
+				startNode = path.endNode();
+				startLabel = Long.toString(PM.getPos(startNode));
+				for (Relationship rel : startNode.getRelationships(Direction.OUTGOING)) {
+					endNode = rel.getEndNode();
+					endLabel = Long.toString(PM.getPos(endNode));
+					size = PM.getSize(rel);
 					if (rel.isType(RelType.NATURAL)) {
-						System.out.print(unEscapeString(rel.getProperty(Const.SYMBOL).toString()) + "\""); 
+						text = unEscapeString(PM.getText(rel));
 					}
 					else if (rel.isType(RelType.RULE) || rel.isType(RelType.RULES)) {
-						System.out.print(rel.getProperty(Const.RULE) + "\"");
+						text = PM.getRule(rel);
 					}
 					else {
-						System.out.print("error : unknown rel type");
+						text = "unknown";
 					}
-					System.out.print("]; //");
-					System.out.print(Const.SYMBOL + ":" + unEscapeString(rel.getProperty(Const.SYMBOL).toString()) + ", ");
-					System.out.print(Const.SIZE + ":" + rel.getProperty(Const.SIZE));
-					System.out.print("\n");
+					for (RelType type : print) {
+						if (rel.isType(type)) {
+							writer.write(String.format("\"%s\" -> \"%s\" [label = \"%s:%s:%d\"]%n",
+									startLabel,	endLabel,
+									rel.getType().name(), text,	size));
+							break;
+						}
+					}
 				}
 			}
 		}
 	}
 	
 	public void dumpToGraphviz() {
-		this.dumpToGraphviz(Const.dotPath, this.bosNode);
+		this.dumpToGraphviz(LOG_FILE, this.bosNode);
 	}
 	public void dumpToGraphviz(String fileName) {
 		this.dumpToGraphviz(fileName, this.bosNode);
 	}
 	public void dumpToGraphviz(String fileName, Node startNode) {
-		Traverser t = null;
-		try (
-			Transaction tx = this.graphDb.beginTx();
-			FileWriter writer = new FileWriter(fileName);
-		) {
+		try (FileWriter writer = new FileWriter(fileName)) {
 			writer.write("digraph {\n");
-			t = this.traverse(this.bosNode, true, EnumSet.of(RelType.NATURAL, RelType.RULE, RelType.RULES));
-			Node node0 = null, node1 = null;
-			String label0 = null, label1 = null;
-			for (Path path : t) {
-				node0 = path.endNode();
-				label0 = node0.getProperty(Const.POS, "error_pos").toString();
-				for (Relationship rel : node0.getRelationships(Direction.OUTGOING)) {
-					node1 = rel.getEndNode();
-					label1 = node1.getProperty(Const.POS, "error_pos").toString();
-					writer.write("\"" + label0 + "\"");
-					writer.write(" -> ");
-					writer.write("\"" + label1 + "\"");
-					writer.write(" [label = ");
-					writer.write("\"" + rel.getType().name() + ":");
-					if (rel.isType(RelType.NATURAL)) {
-						writer.write(unEscapeString(rel.getProperty(Const.SYMBOL).toString()) + "\""); 
-					}
-					else if (rel.isType(RelType.RULE)) {
-						writer.write(rel.getProperty(Const.RULE) + "\"");
-					}
-					else if (rel.isType(RelType.RULES)) {
-						writer.write(Arrays.toString((String[])rel.getProperty(Const.RULE)) + "\"");
-					}
-					else {
-						System.out.println("error : unknown rel type");
-					}
-					writer.write("]; //");
-					writer.write(Const.SYMBOL + ":" + unEscapeString(rel.getProperty(Const.SYMBOL).toString()) + ", ");
-					writer.write(Const.SIZE + ":" + rel.getProperty(Const.SIZE));
-					writer.write("\n");
+			this.dump(str -> {
+				try {
+					writer.write(str);
 				}
-			}
+				catch (IOException e) {
+					System.err.println("failed to write Graphviz file : " + fileName);					
+				}
+			});
 			writer.write("}");
-		} catch (IOException e) {
-			System.out.println("error : dump log.dot failed");
+		}
+		catch (IOException e) {
+			System.err.println("failed to dump Graphviz file : " + fileName);
 		}
 	}
 	
@@ -304,6 +280,7 @@ class Const {
 	final static public String RULE = "rule";
 }
 
+
 class RelationshipFactory {
 	final private ParsingSource source;
 	
@@ -327,16 +304,16 @@ class RelationshipFactory {
 		else {
 			throw new RuntimeException("invalid value of pos : " + tmp.toString() + " isn't long");
 		}
-		ret.setProperty(Const.STARTPOS, startPos); 
-		ret.setProperty(Const.ENDPOS, endPos); 
-		ret.setProperty(Const.SYMBOL, this.source.substring(startPos, endPos));
+		PM.setStartPos(ret, startPos);
+		PM.setEndPos(ret, endPos);
+		PM.setText(ret, this.source.substring(startPos, endPos));
 		switch (type) {
 		case NATURAL:
-			ret.setProperty(Const.SIZE, endPos - startPos);
+			PM.setSize(ret, endPos - startPos);
 			break;
 		case RULE:
 		case RULES:
-			ret.setProperty(Const.SIZE, 1);
+			PM.setSize(ret, 1);
 			break;
 		default:
 			throw new RuntimeException("unknown RelType : " + type.toString());
@@ -349,12 +326,114 @@ class RelationshipFactory {
 	}
 	Relationship createRuleRel(Node startNode, Node endNode, String ruleName) {
 		Relationship ret = this.createRelCommon(startNode, endNode, RelType.RULE);
-		ret.setProperty(Const.RULE, ruleName);
+		PM.setRule(ret, ruleName);
 		return ret;
 	}
 	Relationship createRulesRel(Node startNode, Node endNode, String[] rules) {
 		Relationship ret = this.createRelCommon(startNode, endNode, RelType.RULES);
-		ret.setProperty(Const.RULE, rules);
+		PM.setRule(ret, Arrays.toString(rules));
+		PM.setRules(ret, rules);
 		return ret;
+	}
+}
+
+class PM { //Property Manipulator
+	final static public String S_TEXT = "symbol";
+	final static public String S_RULE = "rule";
+	final static public String S_RULES = "rules";
+	final static public String S_SIZE = "size";
+	final static public String S_POS = "pos";
+	final static public String S_STARTPOS = "startPos";
+	final static public String S_ENDPOS = "endPos";
+
+	static String getText(PropertyContainer container) {
+		Object obj = container.getProperty(S_TEXT);
+		if (obj instanceof String) {
+			return (String)obj;
+		}
+		else {
+			throw new RuntimeException("stored invalid Property : " + obj);
+		}
+	}
+	static void setText(PropertyContainer container, String text) {
+		container.setProperty(S_TEXT, text);
+	}
+
+	static String getRule(PropertyContainer container) {
+		Object obj = container.getProperty(S_RULE);
+		if (obj instanceof String) {
+			return (String)obj;
+		}
+		else {
+			throw new RuntimeException("stored invalid Property : " + obj);
+		}
+	}
+	static void setRule(PropertyContainer container, String text) {
+		container.setProperty(S_RULE, text);
+	}
+
+	static String[] getRules(PropertyContainer container) {
+		Object obj = container.getProperty(S_RULES);
+		if (obj instanceof String[]) {
+			return (String[])obj;
+		}
+		else {
+			throw new RuntimeException("stored invalid Property : " + obj);
+		}
+	}
+	static void setRules(PropertyContainer container, String[] text) {
+		container.setProperty(S_RULES, text);
+	}
+
+	static long getSize(PropertyContainer container) {
+		Object obj = container.getProperty(S_SIZE);
+		if (obj instanceof Long) {
+			return (Long)obj;
+		}
+		else {
+			throw new RuntimeException("stored invalid Property : " + obj);
+		}
+	}
+	static void setSize(PropertyContainer container, long size) {
+		container.setProperty(S_SIZE, size);
+	}
+
+	static long getPos(PropertyContainer container) {
+		Object obj = container.getProperty(S_POS);
+		if (obj instanceof Long) {
+			return (Long)obj;
+		}
+		else {
+			throw new RuntimeException("stored invalid Property : " + obj);
+		}
+	}
+	static void setPos(PropertyContainer container, long size) {
+		container.setProperty(S_POS, size);
+	}
+
+	static long getStartPos(PropertyContainer container) {
+		Object obj = container.getProperty(S_STARTPOS);
+		if (obj instanceof Long) {
+			return (Long)obj;
+		}
+		else {
+			throw new RuntimeException("stored invalid Property : " + obj);
+		}
+	}
+	static void setStartPos(PropertyContainer container, long size) {
+		container.setProperty(S_STARTPOS, size);
+	}
+	
+	static long getEndPos(PropertyContainer container) {
+		Object obj = container.getProperty(S_ENDPOS);
+		if (obj instanceof Long) {
+			return (Long)obj;
+		}
+		else {
+			throw new RuntimeException("stored invalid Property : " + obj);
+		}
+	}
+	static void setEndPos(PropertyContainer container, long size) {
+		container.setProperty(S_ENDPOS, size);
 	}
 }

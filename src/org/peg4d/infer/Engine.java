@@ -51,7 +51,7 @@ public class Engine {
 		}
 		lattice.compactRules();
 		if (Options.verbose) {
-			lattice.dump();
+			lattice.dump(str -> System.out.print(str));
 			lattice.dumpToGraphviz();
 		}
 		ArrayList<ArrayList<String>> formats = lattice.generateShortestPath();
