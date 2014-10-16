@@ -29,7 +29,7 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Traverser;
 import org.peg4d.ParsingSource;
 
-public class LatticeNeo4j implements Lattice {
+public class LatticeNeo4j implements Lattice, Dumper {
 	private GraphDatabaseService graphDb;
 	private RelationshipFactory relFactory;
 	private TreeMap<Long, Node> nodeMap;
@@ -101,7 +101,7 @@ public class LatticeNeo4j implements Lattice {
 					PathExpanders.forTypesAndDirections(
 							RelType.NATURAL, Direction.OUTGOING,
 							RelType.RULES, Direction.OUTGOING
-							), Const.SIZE);
+							), Const.S_SIZE);
 			Iterable<WeightedPath> paths = finder.findAllPaths(this.bosNode, this.eosNode);
 			ArrayList<String> format = null;
 			String prev = null;
@@ -109,14 +109,14 @@ public class LatticeNeo4j implements Lattice {
 				format = new ArrayList<>();
 				prev = "";
 				for (Relationship rel : path.relationships()) {
-					if (rel.hasProperty(Const.RULE)) {
+					if (rel.hasProperty(Const.S_RULE)) {
 						if (!prev.isEmpty()) {
 							format.add("\"" + prev + "\"");
 							prev = "";
 						}
 						format.add(PropertyManipulator.getRule(rel));
 					}
-					else if (rel.hasProperty(Const.SYMBOL)) {
+					else if (rel.hasProperty(Const.S_TEXT)) {
 						prev += unEscapeString(PropertyManipulator.getText(rel));
 					}
 					else {
@@ -223,11 +223,11 @@ public class LatticeNeo4j implements Lattice {
 				for (Relationship rel : startNode.getRelationships(Direction.OUTGOING, RelType.RULE)) {
 					endNode = rel.getEndNode();
 					if ((ruleList = relMap.get(endNode)) != null) {
-						ruleList.add(rel.getProperty(Const.RULE).toString());
+						ruleList.add(rel.getProperty(Const.S_RULE).toString());
 					}
 					else {
 						ruleList = new ArrayList<>();
-						ruleList.add(rel.getProperty(Const.RULE).toString());
+						ruleList.add(rel.getProperty(Const.S_RULE).toString());
 						relMap.put(endNode, ruleList);
 					}
 				}
@@ -264,23 +264,6 @@ enum RelType implements RelationshipType
 	RULES //compacted rules
 }
 
-class Const {
-	final static public String dbPath = "/usr/local/Cellar/neo4j/2.1.5/libexec/data/graph.db";
-	final static public String dotPath = "log.dot";
-	
-	//for relation property
-	final static public String SYMBOL = "symbol";
-	final static public String SIZE = "size";
-	final static public String POS = "pos";
-	final static public String STARTPOS = "startPos";
-	final static public String ENDPOS = "endPos";
-	
-	//for RelTypes
-	final static public String NATURAL = "natural";
-	final static public String RULE = "rule";
-}
-
-
 class RelationshipFactory {
 	final private ParsingSource source;
 	
@@ -292,13 +275,13 @@ class RelationshipFactory {
 		Relationship ret = startNode.createRelationshipTo(endNode, type);
 		Object tmp = null;
 		long startPos, endPos;
-		if ((tmp = startNode.getProperty(Const.POS)) instanceof Long) {
+		if ((tmp = startNode.getProperty(Const.S_POS)) instanceof Long) {
 			startPos = (Long)tmp;
 		}
 		else {
 			throw new RuntimeException("invalid value of pos : " + tmp.toString() + " isn't long");
 		}
-		if ((tmp = endNode.getProperty(Const.POS)) instanceof Long) {
+		if ((tmp = endNode.getProperty(Const.S_POS)) instanceof Long) {
 			endPos = (Long)tmp;
 		}
 		else {
@@ -338,16 +321,8 @@ class RelationshipFactory {
 }
 
 class PropertyManipulator {
-	final static public String S_TEXT = "symbol";
-	final static public String S_RULE = "rule";
-	final static public String S_RULES = "rules";
-	final static public String S_SIZE = "size";
-	final static public String S_POS = "pos";
-	final static public String S_STARTPOS = "startPos";
-	final static public String S_ENDPOS = "endPos";
-
 	static String getText(PropertyContainer container) {
-		Object obj = container.getProperty(S_TEXT);
+		Object obj = container.getProperty(Const.S_TEXT);
 		if (obj instanceof String) {
 			return (String)obj;
 		}
@@ -356,11 +331,11 @@ class PropertyManipulator {
 		}
 	}
 	static void setText(PropertyContainer container, String text) {
-		container.setProperty(S_TEXT, text);
+		container.setProperty(Const.S_TEXT, text);
 	}
 
 	static String getRule(PropertyContainer container) {
-		Object obj = container.getProperty(S_RULE);
+		Object obj = container.getProperty(Const.S_RULE);
 		if (obj instanceof String) {
 			return (String)obj;
 		}
@@ -369,11 +344,11 @@ class PropertyManipulator {
 		}
 	}
 	static void setRule(PropertyContainer container, String text) {
-		container.setProperty(S_RULE, text);
+		container.setProperty(Const.S_RULE, text);
 	}
 
 	static String[] getRules(PropertyContainer container) {
-		Object obj = container.getProperty(S_RULES);
+		Object obj = container.getProperty(Const.S_RULES);
 		if (obj instanceof String[]) {
 			return (String[])obj;
 		}
@@ -382,11 +357,11 @@ class PropertyManipulator {
 		}
 	}
 	static void setRules(PropertyContainer container, String[] text) {
-		container.setProperty(S_RULES, text);
+		container.setProperty(Const.S_RULES, text);
 	}
 
 	static long getSize(PropertyContainer container) {
-		Object obj = container.getProperty(S_SIZE);
+		Object obj = container.getProperty(Const.S_SIZE);
 		if (obj instanceof Long) {
 			return (Long)obj;
 		}
@@ -395,11 +370,11 @@ class PropertyManipulator {
 		}
 	}
 	static void setSize(PropertyContainer container, long size) {
-		container.setProperty(S_SIZE, size);
+		container.setProperty(Const.S_SIZE, size);
 	}
 
 	static long getPos(PropertyContainer container) {
-		Object obj = container.getProperty(S_POS);
+		Object obj = container.getProperty(Const.S_POS);
 		if (obj instanceof Long) {
 			return (Long)obj;
 		}
@@ -408,11 +383,11 @@ class PropertyManipulator {
 		}
 	}
 	static void setPos(PropertyContainer container, long size) {
-		container.setProperty(S_POS, size);
+		container.setProperty(Const.S_POS, size);
 	}
 
 	static long getStartPos(PropertyContainer container) {
-		Object obj = container.getProperty(S_STARTPOS);
+		Object obj = container.getProperty(Const.S_STARTPOS);
 		if (obj instanceof Long) {
 			return (Long)obj;
 		}
@@ -421,11 +396,11 @@ class PropertyManipulator {
 		}
 	}
 	static void setStartPos(PropertyContainer container, long size) {
-		container.setProperty(S_STARTPOS, size);
+		container.setProperty(Const.S_STARTPOS, size);
 	}
 	
 	static long getEndPos(PropertyContainer container) {
-		Object obj = container.getProperty(S_ENDPOS);
+		Object obj = container.getProperty(Const.S_ENDPOS);
 		if (obj instanceof Long) {
 			return (Long)obj;
 		}
@@ -434,6 +409,6 @@ class PropertyManipulator {
 		}
 	}
 	static void setEndPos(PropertyContainer container, long size) {
-		container.setProperty(S_ENDPOS, size);
+		container.setProperty(Const.S_ENDPOS, size);
 	}
 }
