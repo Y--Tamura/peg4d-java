@@ -1,0 +1,13 @@
+File         = TopLevel;
+TopLevel     = IP;
+export       = IP;
+
+IP = << IPv4 >>;
+
+IPv4 = Digit1_3 "." Digit1_3 "." Digit1_3 "." Digit1_3;
+IPv6 = ""; //todo
+
+DIGIT = [0-9];
+Digit2 = DIGIT DIGIT;
+Digit3 = DIGIT DIGIT DIGIT;
+Digit1_3 = Digit3 / Digit2 / DIGIT;

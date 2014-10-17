@@ -1,0 +1,108 @@
+File = TopLevel;
+TopLevel = DateTime;
+export = DateTime;
+
+//========================================================================
+
+DateTime     = << (DayOfWeek ",")? Date FWS Time CFWS? >>;
+
+DayOfWeek    = (FWS? DayName)
+             / ObsDayOfWeek;
+
+DayName      = "Mon"
+             / "Tue"
+             / "Wed"
+             / "Thu"
+             / "Fri"
+             / "Sat"
+             / "Sun";
+
+Date         = Day Month Year;
+
+Year         = Digit4 DIGIT*
+             / ObsYear;
+
+Month        = (FWS MonthName FWS)
+             / ObsMonth;
+
+MonthName    = "Jan"
+             / "Feb"
+             / "Mar"
+             / "Apr"
+             / "May"
+             / "Jun"
+             / "Jul"
+             / "Aug"
+             / "Sep"
+             / "Oct"
+             / "Nov"
+             / "Dec";
+
+Day          = (FWS? (Digit2 / DIGIT))
+             / ObsDay;
+Time         = TimeOfDay FWS Zone;
+
+TimeOfDay    = Hour ":" Minute (":" Second)?;
+
+Hour         = Digit2
+             / ObsHour;
+
+Minute       = Digit2
+             / ObsMinute;
+
+Second       = Digit2
+             / ObsSecond;
+
+Zone         = (("+" / "-") Digit4)
+             / ObsZone;
+
+//========================================================================
+
+ObsDayOfWeek = CFWS? DayName CFWS?;
+
+ObsYear      = CFWS? Digit2 CFWS?;
+
+ObsMonth     = CFWS MonthName CFWS;
+
+ObsDay       = CFWS? (Digit2 / DIGIT) CFWS?;
+
+ObsHour      = CFWS? Digit2 CFWS?;
+
+ObsMinute    = CFWS? Digit2 CFWS?;
+
+ObsSecond    = CFWS? Digit2 CFWS?;
+
+ObsZone      = "UT"
+             / "GMT"
+             / "EST"
+             / "EDT"
+             / "CST"
+             / "CDT"
+             / "MST"
+             / "MDT"
+             / "PST"
+             / "PDT"
+             / [A-I]
+             / [K-Z]
+             / [a-i]
+             / [k-z];
+
+//========================================================================
+
+DIGIT        = [0-9];
+
+Digit2       = DIGIT DIGIT;
+
+Digit4       = Digit2 Digit2;
+
+FWS          = (WSP / CRLF)*;
+//FWS          = ((WSP* CRLF)? WSP+) / OBSFWS;
+
+WSP          = [ \t];
+
+CRLF         = [\n\r];
+
+CFWS         = FWS*; //fixme
+//CFWS        = *([FWS] comment) (([FWS] comment) / FWS)
+
+OBSFWS       =  WSP+ (CRLF WSP+)*;

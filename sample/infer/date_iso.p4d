@@ -1,0 +1,48 @@
+File         = TopLevel;
+TopLevel     = DateTime;
+export       = DateTime;
+
+//========================================================================
+
+DateTime     = << WS Date T Time WS >>;
+
+Date         = YYYY HYP MM HYP DD
+             / YYYY HYP DDD
+             / YYYY HYP WWW HYP D
+             / YYYY HYP DD
+             / YYYY;
+
+YYYY         = [0-9][0-9][0-9][0-9];
+
+MM           = [0-1][0-9];
+
+DD           = [0-3][0-9];
+
+DDD          = [0-3][0-9][0-9];
+
+WWW          = "W" [0-5][0-9];
+
+D            = [1-7];
+
+Time         = TimeBody Zone?;
+
+TimeBody     = HH COLON MM COLON SS ([.,] [0-9]+)?
+             / HH COLON MM
+             / HH;
+
+Zone         = "Z"
+             / (("+" / "-") HH COLON MM);
+
+HH           = [0-2][0-9];
+
+MM           = [0-6][0-9];
+
+SS           = [0-6][0-9];
+
+T            = "T";
+
+HYP          = "-";
+
+COLON        = ":";
+
+WS           = [ \t\n\r]*;

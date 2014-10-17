@@ -1,0 +1,11 @@
+File = TopLevel;
+TopLevel = String;
+export = String;
+
+String = TripleQuoteString / DoubleQuoteString / SingleQuoteString;
+
+TripleQuoteString = '"""' <{ ('\\"""' / !'"""' .)* }> '"""';
+DoubleQuoteString = '"' <{ ('\\"' / !'"' .)* }> '"';
+SingleQuoteString = "'" <{ ("\\'" / !"'" .)* }> "'";
+
+
