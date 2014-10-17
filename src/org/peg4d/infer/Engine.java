@@ -56,7 +56,9 @@ public class Engine {
 		}
 		ArrayList<ArrayList<String>> formats = lattice.generateShortestPath();
 		for (ArrayList<String> format : formats) {
-			this.structure(format, 2);
+			for (int i = 15; i > 0; i--) {
+				this.structure(format, i);
+			}
 		}
 	}
 
@@ -78,20 +80,18 @@ public class Engine {
 	}
 
 	private void structure(ArrayList<String> format, int ngram) {
-		HashMap<Pair<String, String>, Long> m = new HashMap<>();
-		String elem1 = null, elem2 = null;
-		Pair<String, String> key = null;
+		HashMap<NgramContainer<String>, Integer> m = new HashMap<>();
+		NgramContainer<String> key = null;
 		for (int i = 0; i < format.size() - (ngram - 1); i++) {
-			elem1 = format.get(i);
-			elem2 = format.get(i + 1);
-			key = new Pair<>(elem1, elem2);
+			key = new NgramContainer<>(format.subList(i, i + ngram));
 			if (m.containsKey(key)) {
 				m.put(key, m.get(key) + 1);
 			}
 			else {
-				m.put(key, 1L);
+				m.put(key, 1);
 			}
 		}
+		System.out.printf("%d-gram analyze:%s%n", ngram, m);
 	}
 }
 

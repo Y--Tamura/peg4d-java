@@ -36,14 +36,11 @@ public class LatticeNeo4j implements Lattice, Dumper {
 	private Node bosNode;
 	private Node eosNode;
 	
-	final static public String DB_PATH = "/usr/local/Cellar/neo4j/2.1.5/libexec/data/graph.db";
-	final static public String LOG_FILE = "log.dot";
-
 	LatticeNeo4j(ParsingSource source) {
 		this(source, false);
 	}
 	LatticeNeo4j(ParsingSource source, boolean initializeAllSource) {
-		this.graphDb = new GraphDatabaseFactory().newEmbeddedDatabase(DB_PATH);
+		this.graphDb = new GraphDatabaseFactory().newEmbeddedDatabase(Const.DB_PATH);
 		this.relFactory = new RelationshipFactory(source);
 		this.nodeMap = new TreeMap<>();
 		try (Transaction tx = this.graphDb.beginTx()) {
@@ -185,7 +182,7 @@ public class LatticeNeo4j implements Lattice, Dumper {
 	}
 	
 	public void dumpToGraphviz() {
-		this.dumpToGraphviz(LOG_FILE, this.bosNode);
+		this.dumpToGraphviz(Const.LOG_FILE, this.bosNode);
 	}
 	public void dumpToGraphviz(String fileName) {
 		this.dumpToGraphviz(fileName, this.bosNode);
@@ -210,9 +207,7 @@ public class LatticeNeo4j implements Lattice, Dumper {
 	
 	public void compactRules() {
 		Traverser t = null;
-		try (
-			Transaction tx = this.graphDb.beginTx();
-		) {
+		try (Transaction tx = this.graphDb.beginTx()) {
 			t = this.traverse(this.bosNode, true, EnumSet.of(RelType.NATURAL, RelType.RULE, RelType.RULES));
 			Node startNode = null, endNode = null;
 			ArrayList<String> ruleList = null;
