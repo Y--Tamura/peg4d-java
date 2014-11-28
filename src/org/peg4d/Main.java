@@ -3,12 +3,16 @@ package org.peg4d;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.util.Map;
 import java.util.TreeMap;
 
 import org.peg4d.data.RelationBuilder;
 import org.peg4d.konoha.KSourceGenerator;
 import org.peg4d.konoha.SweetJSGenerator;
 import org.peg4d.pegcode.GrammarFormatter;
+import org.peg4d.regex.RegexObject;
+import org.peg4d.regex.RegexObjectConverter;
+import org.peg4d.regex.RegexPegGenerator;
 
 public class Main {
 	public final static String  ProgName  = "Nez";
@@ -197,6 +201,7 @@ public class Main {
 		System.out.println("  check        Parse -i input or -s string");
 		System.out.println("  shell        Try parsing in an interactive way");
 		System.out.println("  rel          Convert -f file to relations (csv file)");
+		System.out.println("  regex        Convert -i regex to peg");
 		System.out.println("  conv         Convert PEG4d rules to the specified format in -o");
 		System.out.println("  find         Search nonterminals that can match inputs");
 		Main._Exit(0, Message);
@@ -356,8 +361,8 @@ public class Main {
 //		}
 	}
 
-	public static void conv() {
-		Grammar peg = new GrammarFactory().newGrammar("main", "../camp2014f/working/regex.p4d");
+	public static void regex() {
+		Grammar peg = new GrammarFactory().newGrammar("main", "src/resource/regex.p4d");
 		Main.printVerbose("Grammar", peg.getName());
 		Main.printVerbose("StartingPoint", StartingPoint);
 		ParsingContext context = new ParsingContext(newParsingSource(peg));
@@ -380,9 +385,10 @@ public class Main {
 
 		System.out.println("Parsed: " + pego);
 
-//		RegexPegGenerator pegfile = new RegexPegGenerator("regex.p4d");
-//		pegfile.writeRegexPego(pego);
-//		pegfile.close();
+		Map<String, RegexObject> ro = new RegexObjectConverter(pego).convert();
+		RegexPegGenerator pegfile = new RegexPegGenerator(OutputFileName, ro);
+		pegfile.writePeg();
+		pegfile.close();
 
 		return;
 	}
