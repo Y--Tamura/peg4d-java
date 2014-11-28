@@ -356,6 +356,37 @@ public class Main {
 //		}
 	}
 
+	public static void conv() {
+		Grammar peg = new GrammarFactory().newGrammar("main", "../camp2014f/working/regex.p4d");
+		Main.printVerbose("Grammar", peg.getName());
+		Main.printVerbose("StartingPoint", StartingPoint);
+		ParsingContext context = new ParsingContext(newParsingSource(peg));
+		ParsingObject pego = context.parse(peg, StartingPoint, new MemoizationManager());
+		if(context.isFailure()) {
+			System.out.println(context.source.formatPositionLine("error", context.fpos, context.getErrorMessage()));
+			System.out.println(context.source.formatPositionLine("maximum matched", context.head_pos, ""));
+			if(Main.DebugLevel > 0) {
+				System.out.println(context.maximumFailureTrace);
+			}
+			return;
+		}
+		if(context.hasByteChar()) {
+			System.out.println(context.source.formatPositionLine("unconsumed", context.pos, ""));
+			System.out.println(context.source.formatPositionLine("maximum matched", context.head_pos, ""));
+			if(Main.DebugLevel > 0) {
+				System.out.println(context.maximumFailureTrace);
+			}
+		}
+
+		System.out.println("Parsed: " + pego);
+
+//		RegexPegGenerator pegfile = new RegexPegGenerator("regex.p4d");
+//		pegfile.writeRegexPego(pego);
+//		pegfile.close();
+
+		return;
+	}
+
 	private static void outputMap(ParsingObject po) {
 		TreeMap<String,Integer> m = new TreeMap<String,Integer>();
 		tagCount(po, m);
