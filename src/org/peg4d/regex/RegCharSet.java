@@ -11,7 +11,6 @@ public class RegCharSet extends RegexObject {
 	public RegCharSet(ParsingObject po) {
 		super(po);
 		set = new LinkedHashSet<String>();
-		System.out.println(po.getText());
 		setCharSet(po.getText());
 	}
 
@@ -41,15 +40,21 @@ public class RegCharSet extends RegexObject {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		String[] arr = set.toArray(new String[set.size()]);
+		if(arr.length > 1) {
+			sb.append("(");
+		}
 		if(arr.length > 0) {
 			sb.append("'");
 			sb.append(arr[0]);
-			sb.append("'");
+			sb.append("' ");
 		}
 		for(int i = 1; i < arr.length; i++) {
-			sb.append(" / '");
+			sb.append("/ '");
 			sb.append(arr[i]);
-			sb.append("'");
+			sb.append("' ");
+		}
+		if(arr.length > 1) {
+			sb.append(") ");
 		}
 		return sb.toString();
 	}
