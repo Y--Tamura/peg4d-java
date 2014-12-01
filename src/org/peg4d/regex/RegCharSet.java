@@ -40,10 +40,16 @@ public class RegCharSet extends RegexObject {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		for(String s: set.toArray(new String[set.size()])) {
+		String[] arr = set.toArray(new String[set.size()]);
+		if(arr.length > 0) {
 			sb.append("'");
-			sb.append(s);
-			sb.append("' ");
+			sb.append(arr[0]);
+			sb.append("'");
+		}
+		for(int i = 1; i < arr.length; i++) {
+			sb.append(" / '");
+			sb.append(arr[i]);
+			sb.append("'");
 		}
 		return sb.toString();
 	}
