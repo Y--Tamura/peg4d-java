@@ -1,7 +1,7 @@
 package org.peg4d.regex;
 
 
-public class RegSeq extends RegList {
+public class RegSeq extends RegexObject {
 
 	public RegSeq() {
 		super(null); //FIXME

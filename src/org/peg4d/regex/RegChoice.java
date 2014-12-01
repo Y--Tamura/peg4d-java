@@ -2,7 +2,7 @@ package org.peg4d.regex;
 
 import org.peg4d.ParsingObject;
 
-public class RegChoice extends RegList {
+public class RegChoice extends RegexObject {
 
 	public RegChoice(ParsingObject po) {
 		super(po);

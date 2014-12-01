@@ -46,7 +46,7 @@ public class RegexObjectConverter {
 		}
 	}
 
-	private List<RegexObject> pi(List<RegexObject> ro1, List<RegexObject> ro2) {
+	private RegexObject pi(RegexObject target, RegexObject continuation) {
 		return null;
 	}
 }
