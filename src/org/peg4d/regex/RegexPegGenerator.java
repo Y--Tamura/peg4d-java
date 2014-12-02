@@ -42,7 +42,7 @@ public class RegexPegGenerator extends Generator {
 		writeLn("");
 		writeLn("Chunk = TopLevel");
 		writeLn("");
-		writeLn("_ = [ \t\r\n]*");
+		writeLn("_ = [ \\t\\r\\n]*");
 		writeLn("");
 	}
 
