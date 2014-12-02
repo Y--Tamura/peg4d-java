@@ -72,11 +72,13 @@ public class RegexObjectConverter {
 	private RegexObject pi(RegexObject target, RegexObject continuation) {
 		int target_size = target.size();
 		if(target_size == 0) {
+			//(1)
 			return continuation;
 		}
 		else if(target_size == 1) {
 			RegexObject child = target.get(0);
 			if(child instanceof RegChoice) {
+				//(4)
 				//(a|b)c -> pi(a, c) / pi(b, c)
 				RegexObject r1 = child.get(0);
 				RegexObject r2 = child.get(1);
@@ -93,6 +95,7 @@ public class RegexObjectConverter {
 				if(child instanceof RegCharSet && child.isZeroMore()) {
 					int continuation_size = continuation.size();
 					if(continuation_size > 0) {
+						//a*a
 						RegexObject rHead = continuation.get(0);
 						RegCharSet charSet = (RegCharSet)child;
 						if(rHead instanceof RegCharSet && charSet.contains(rHead)) {
@@ -104,11 +107,13 @@ public class RegexObjectConverter {
 						}
 					}
 				}
+				//(2)
 				target.concat(continuation);
 				return target;
 			}
 		}
 		else {
+			//(3)
 			RegexObject c2 = target.popContinuation();
 			return pi(target, pi(c2, continuation));
 		}
