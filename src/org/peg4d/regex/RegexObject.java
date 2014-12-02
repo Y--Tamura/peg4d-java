@@ -3,8 +3,6 @@ package org.peg4d.regex;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.text.html.HTMLDocument.HTMLReader.IsindexAction;
-
 import org.peg4d.ParsingObject;
 
 public abstract class RegexObject {
