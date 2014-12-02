@@ -11,6 +11,7 @@ public class RegCharSet extends RegexObject {
 
 	public RegCharSet(ParsingObject po) {
 		this(po, null);
+		this.addQuantifier(po);
 	}
 
 	public RegCharSet(ParsingObject po, RegexObject parent) {

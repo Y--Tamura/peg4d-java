@@ -27,40 +27,31 @@ public class RegexObjectConverter {
 		return rules;
 	}
 
+	private RegSeq createSequence(ParsingObject po) {
+		RegSeq r = new RegSeq();
+		for(ParsingObject child: po) {
+			r.add(createRegexObject(child));
+		}
+		return r;
+	}
+
 	private RegexObject createRegexObject(ParsingObject e) {
 		switch(e.getTag().toString()){
 		case "Or":
 			RegChoice roOr = new RegChoice();
-			RegSeq r1 = new RegSeq();
-			for(ParsingObject blockChild: e.get(0)) {
-				r1.add(createRegexObject(blockChild));
-			}
-			RegSeq r2 = new RegSeq();
-			for(ParsingObject blockChild: e.get(1)) {
-				r2.add(createRegexObject(blockChild));
-			}
-			roOr.add(r1);
-			roOr.add(r2);
+			roOr.add(createSequence(e.get(0)));
+			roOr.add(createSequence(e.get(1)));
 			return roOr;
 		case "Item":
-			RegSeq roItem = new RegSeq();
-			for(ParsingObject blockChild: e.get(0)) {
-				roItem.add(createRegexObject(blockChild));
-			}
-			return roItem;
+			return createSequence(e.get(0));
 		default: {
 			switch(e.get(1).getTag().toString()) {
 			case "Char":
 			case "OneOf":
 			case "ExceptFor":
-				RegexObject roChar = new RegCharSet(e);
-				roChar.addQuantifier(e);
-				return roChar;
+				return new RegCharSet(e);
 			case "Block":
-				RegSeq roBlock = new RegSeq();
-				for(ParsingObject blockChild: e.get(1)) {
-					roBlock.add(createRegexObject(blockChild));
-				}
+				RegSeq roBlock = createSequence(e.get(1));
 				roBlock.addQuantifier(e);
 				return roBlock;
 			default:

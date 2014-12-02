@@ -1,10 +1,17 @@
 package org.peg4d.regex;
 
+import org.peg4d.ParsingObject;
+
 
 public class RegSeq extends RegexObject {
 
 	public RegSeq() {
-		super(null); //FIXME
+		super(null);
+	}
+
+	public RegSeq(ParsingObject po) {
+		super(po);
+		this.addQuantifier(po);
 	}
 
 	@Override
