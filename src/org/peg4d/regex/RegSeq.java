@@ -12,6 +12,7 @@ public class RegSeq extends RegexObject {
 		StringBuilder sb = new StringBuilder();
 		for(RegexObject e: list) {
 			sb.append(e.toString());
+			sb.append(" ");
 		}
 		return sb.toString();
 	}

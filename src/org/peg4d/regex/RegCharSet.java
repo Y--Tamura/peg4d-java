@@ -45,20 +45,20 @@ public class RegCharSet extends RegexObject {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		String[] arr = set.toArray(new String[set.size()]);
-		if(arr.length > 1) {
-			sb.append("(");
-		}
-		if(arr.length > 0) {
+		if(arr.length == 1){
+			sb.append("'");
+			sb.append(arr[0]);
+			sb.append("'");
+		}else{
+			sb.append("( ");
 			sb.append("'");
 			sb.append(arr[0]);
 			sb.append("' ");
-		}
-		for(int i = 1; i < arr.length; i++) {
-			sb.append("/ '");
-			sb.append(arr[i]);
-			sb.append("' ");
-		}
-		if(arr.length > 1) {
+			for(int i = 1; i < arr.length; i++) {
+				sb.append("/ '");
+				sb.append(arr[i]);
+				sb.append("' ");
+			}
 			sb.append(")");
 		}
 		if(this.quantifier != null) {
