@@ -99,17 +99,7 @@ public class RegexObjectConverter {
 							RegCharSet rHeadChar = (RegCharSet)continuation.popHead();
 							RegNonTerminal nt = new RegNonTerminal(createId());
 							continuation.pushHead(nt);
-							RegSeq newRule = new RegSeq();
-							RegChoice choice = new RegChoice();
-							RegSeq s1 = new RegSeq();
-							s1.add(rHeadChar);
-							s1.add(nt);
-							RegSeq s2 = new RegSeq();
-							s2.add(rHeadChar);
-							choice.add(s1);
-							choice.add(s2);
-							newRule.add(choice);
-							rules.put(nt.toString(), newRule);
+							createNewZeroMoreRule(rHeadChar, nt);
 							return continuation;
 						}
 					}
@@ -122,5 +112,20 @@ public class RegexObjectConverter {
 			RegexObject c2 = target.popContinuation();
 			return pi(target, pi(c2, continuation));
 		}
+	}
+
+	private void createNewZeroMoreRule(RegCharSet rHeadChar, RegNonTerminal nt) {
+		//E0 = a E0 / a
+		RegSeq newRule = new RegSeq();
+		RegChoice choice = new RegChoice();
+		RegSeq s1 = new RegSeq();
+		s1.add(rHeadChar);
+		s1.add(nt);
+		RegSeq s2 = new RegSeq();
+		s2.add(rHeadChar);
+		choice.add(s1);
+		choice.add(s2);
+		newRule.add(choice);
+		rules.put(nt.toString(), newRule);
 	}
 }
