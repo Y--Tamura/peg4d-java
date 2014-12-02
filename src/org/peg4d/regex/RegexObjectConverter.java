@@ -9,8 +9,15 @@ public class RegexObjectConverter {
 
 	private ParsingObject po;
 	private Map<String, RegexObject> rules;
+	private int ruleId = 0;
+	private final static String rulePrefix = "E";
+
 	public RegexObjectConverter(ParsingObject po) {
 		this.po = po;
+	}
+
+	private String createId() {
+		return rulePrefix + ruleId++;
 	}
 
 	public Map<String, RegexObject> convert() {
@@ -22,8 +29,8 @@ public class RegexObjectConverter {
 
 		rules = new HashMap<String, RegexObject>();
 		RegexObject continuation = rs.popContinuation();
-		pi(rs, continuation);
-		rules.put("TopLevel", rs);
+		RegexObject top = pi(rs, continuation);
+		rules.put("TopLevel", top);
 		return rules;
 	}
 
@@ -83,6 +90,30 @@ public class RegexObjectConverter {
 				return pi(child, continuation);
 			}
 			else {
+				if(child instanceof RegCharSet && child.isZeroMore()) {
+					int continuation_size = continuation.size();
+					if(continuation_size > 0) {
+						RegexObject rHead = continuation.get(0);
+						RegCharSet charSet = (RegCharSet)child;
+						if(rHead instanceof RegCharSet && charSet.contains(rHead)) {
+							RegCharSet rHeadChar = (RegCharSet)continuation.popHead();
+							RegNonTerminal nt = new RegNonTerminal(createId());
+							continuation.pushHead(nt);
+							RegSeq newRule = new RegSeq();
+							RegChoice choice = new RegChoice();
+							RegSeq s1 = new RegSeq();
+							s1.add(rHeadChar);
+							s1.add(nt);
+							RegSeq s2 = new RegSeq();
+							s2.add(rHeadChar);
+							choice.add(s1);
+							choice.add(s2);
+							newRule.add(choice);
+							rules.put(nt.toString(), newRule);
+							return continuation;
+						}
+					}
+				}
 				target.concat(continuation);
 				return target;
 			}

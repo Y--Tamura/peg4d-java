@@ -24,6 +24,7 @@ public class RegexPegGenerator extends Generator {
 		write("TopLevel = { ");
 		this.write(r.toString());
 		writeLn(" #Matched }");
+		writeLn("");
 
 		for(Entry<String, RegexObject> s: rules.entrySet()) {
 			if(s.getKey().equals("TopLevel")) {

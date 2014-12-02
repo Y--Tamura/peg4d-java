@@ -66,6 +66,14 @@ public abstract class RegexObject {
 		return this.list.remove(this.list.size() - 1);
 	}
 
+	public RegexObject popHead() {
+		return this.list.remove(0);
+	}
+
+	public void pushHead(RegexObject that) {
+		this.list.add(0, that);
+	}
+
 	public RegexObject popContinuation() {
 		RegSeq rs = new RegSeq();
 		if(this.size() < 2) {
@@ -83,6 +91,16 @@ public abstract class RegexObject {
 		} else {
 			this.add(ro);
 		}
+	}
+
+	public boolean isZeroMore() {
+		if(this.quantifier == null) {
+			return false;
+		}
+		if(this.quantifier.getLabel().equals("ZeroMoreL")) {
+			return true;
+		}
+		return false;
 	}
 
 }
