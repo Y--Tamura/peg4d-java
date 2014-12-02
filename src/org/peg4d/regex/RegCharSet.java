@@ -8,8 +8,13 @@ import org.peg4d.ParsingObject;
 public class RegCharSet extends RegexObject {
 
 	private Set<String> set;
+
 	public RegCharSet(ParsingObject po) {
-		super(po);
+		this(po, null);
+	}
+
+	public RegCharSet(ParsingObject po, RegexObject parent) {
+		super(po, parent);
 		set = new LinkedHashSet<String>();
 		setCharSet(po.getText());
 	}

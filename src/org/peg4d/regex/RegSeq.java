@@ -10,7 +10,7 @@ public class RegSeq extends RegexObject {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		for(RegexObject e: l) {
+		for(RegexObject e: list) {
 			sb.append(e.toString());
 		}
 		return sb.toString();

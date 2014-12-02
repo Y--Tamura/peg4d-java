@@ -7,7 +7,7 @@ import org.peg4d.ParsingObject;
 
 public abstract class RegexObject {
 
-	protected List<RegexObject> l;
+	protected List<RegexObject> list;
 	protected ParsingObject ref;
 	protected Quantifier quantifier;
 	protected RegexObject parent;
@@ -15,11 +15,15 @@ public abstract class RegexObject {
 	public boolean endWith;
 
 	public RegexObject(ParsingObject po) {
-		parent = null;
-		beginWith = false;
-		endWith = false;
-		ref = po;
-		l = new ArrayList<RegexObject>();
+		this(po, null);
+	}
+
+	public RegexObject(ParsingObject po, RegexObject parent) {
+		this.parent = parent;
+		this.beginWith = false;
+		this.endWith = false;
+		this.ref = po;
+		this.list = new ArrayList<RegexObject>();
 	}
 
 	public void addQuantifier(ParsingObject po) {
@@ -35,11 +39,19 @@ public abstract class RegexObject {
 	}
 
 	public void add(RegexObject e) {
-		l.add(e);
+		this.list.add(e);
+	}
+
+	public List<RegexObject> getList(){
+		return this.list;
 	}
 
 	public int size() {
-		return l.size();
+		return this.list.size();
+	}
+
+	public ParsingObject getRef(){
+		return this.ref;
 	}
 
 	private boolean is(ParsingObject parsingObject, String string) {
