@@ -3,6 +3,8 @@ package org.peg4d.regex;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.text.html.HTMLDocument.HTMLReader.IsindexAction;
+
 import org.peg4d.ParsingObject;
 
 public abstract class RegexObject {
@@ -42,6 +44,10 @@ public abstract class RegexObject {
 		this.list.add(e);
 	}
 
+	public RegexObject get(int i) {
+		return this.list.get(i);
+	}
+
 	public List<RegexObject> getList(){
 		return this.list;
 	}
@@ -56,6 +62,29 @@ public abstract class RegexObject {
 
 	private boolean is(ParsingObject parsingObject, String string) {
 		return parsingObject.getTag().toString().equals(string);
+	}
+
+	private RegexObject pop() {
+		return this.list.remove(this.list.size() - 1);
+	}
+
+	public RegexObject popContinuation() {
+		RegSeq rs = new RegSeq();
+		if(this.size() < 2) {
+			return rs;
+		}
+		rs.add(this.pop());
+		return rs;
+	}
+
+	public void concat(RegexObject ro) {
+		if(ro instanceof RegSeq) {
+			for(int i = 0; i < ro.size(); i++) {
+				this.add(ro.get(i));
+			}
+		} else {
+			this.add(ro);
+		}
 	}
 
 }

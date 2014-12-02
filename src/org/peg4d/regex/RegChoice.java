@@ -4,6 +4,10 @@ import org.peg4d.ParsingObject;
 
 public class RegChoice extends RegexObject {
 
+	public RegChoice() {
+		this(null);
+	}
+
 	public RegChoice(ParsingObject po) {
 		this(po, null);
 	}
