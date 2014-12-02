@@ -16,7 +16,7 @@ public class RegCharSet extends RegexObject {
 	public RegCharSet(ParsingObject po, RegexObject parent) {
 		super(po, parent);
 		set = new LinkedHashSet<String>();
-		setCharSet(po.getText());
+		setCharSet(po.get(1).getText());
 	}
 
 	private void setCharSet(String s) {
@@ -59,7 +59,10 @@ public class RegCharSet extends RegexObject {
 			sb.append("' ");
 		}
 		if(arr.length > 1) {
-			sb.append(") ");
+			sb.append(")");
+		}
+		if(this.quantifier != null) {
+			sb.append(this.quantifier.toString());
 		}
 		return sb.toString();
 	}

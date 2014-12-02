@@ -30,10 +30,10 @@ public abstract class RegexObject {
 			if(is(po.get(0), "BeginWith")) {
 				beginWith = true;
 			}
-			if(po.size() > 3) {
+			if(po.size() > 2) {
 				quantifier = new Quantifier(po.get(2));
 			}
-			if(po.size() > 4 && is(po.get(3), "EndWith")) {
+			if(po.size() > 3 && is(po.get(3), "EndWith")) {
 				endWith = true;
 			}
 	}
