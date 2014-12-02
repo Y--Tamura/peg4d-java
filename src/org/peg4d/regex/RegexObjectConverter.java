@@ -80,9 +80,11 @@ public class RegexObjectConverter {
 			if(child instanceof RegChoice) {
 				//(4)
 				//(a|b)c -> pi(a, c) / pi(b, c)
+				//FIXME
 				RegexObject r1 = child.get(0);
 				RegexObject r2 = child.get(1);
 				RegChoice r = new RegChoice();
+				r.quantifier = target.quantifier; //(a|b)*
 				r.add(pi(r1, continuation));
 				r.add(pi(r2, continuation));
 				return r;

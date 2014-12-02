@@ -19,12 +19,19 @@ public class RegChoice extends RegexObject {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
+		if(quantifier != null) {
+			sb.append("(");
+		}
 		if(list.size() > 0) {
 			sb.append(list.get(0).toString());
 		}
 		for(int i = 1; i < list.size(); i++) {
 			sb.append(" / ");
 			sb.append(list.get(i).toString());
+		}
+		if(quantifier != null) {
+			sb.append(")");
+			sb.append(quantifier.toString());
 		}
 		return sb.toString();
 	}

@@ -17,9 +17,16 @@ public class RegSeq extends RegexObject {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
+		if(quantifier != null) {
+			sb.append("(");
+		}
 		for(RegexObject e: list) {
 			sb.append(e.toString());
 			sb.append(" ");
+		}
+		if(quantifier != null) {
+			sb.append(")");
+			sb.append(quantifier.toString());
 		}
 		return sb.toString();
 	}
