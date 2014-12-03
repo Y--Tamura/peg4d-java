@@ -84,6 +84,9 @@ public class RegCharSet extends RegexObject {
 		if(this.quantifier != null) {
 			sb.append(this.quantifier.toString());
 		}
+		if(this.not == true){
+			sb.append(" .");
+		}
 		return sb.toString();
 	}
 
