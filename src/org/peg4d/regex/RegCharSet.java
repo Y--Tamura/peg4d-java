@@ -25,26 +25,30 @@ public class RegCharSet extends RegexObject {
 			set.add(s);
 			return;
 		}else if(s.length() == 2 && s.charAt(0)=='\\'){
-			//escaped char
+			//escapedchar
 			set.add(s);
 			return;
 		}
 		int i = 1;
 		int max = s.length() - 1;
 		do {
+			//bracket expression
 			int next = i + 1;
 			int next2 = i + 2;
 			if(i == 1 && s.charAt(i)=='^'){
+				//exceptfor
 				this.not = true;
 				i++;
 				continue;
 			}
 			if(next < s.length() && s.charAt(next)=='-' && next2 < s.length()) {
+				//range
 				for(char j = s.charAt(i); j <= s.charAt(next2); j++) {
 					set.add(String.valueOf(j));
 				}
 				i += 3;
 			} else if(s.charAt(i)=='\\'){
+				//escapedchar
 				set.add(s.substring(i, next2));
 				i += 2;
 			} else {
