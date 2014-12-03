@@ -30,6 +30,11 @@ public class RegCharSet extends RegexObject {
 		do {
 			int next = i + 1;
 			int next2 = i + 2;
+			if(i == 1 && s.charAt(i)=='^'){
+				this.not = true;
+				i++;
+				continue;
+			}
 			if(next < s.length() && s.charAt(next)=='-' && next2 < s.length()) {
 				for(char j = s.charAt(i); j <= s.charAt(next2); j++) {
 					set.add(String.valueOf(j));
@@ -46,6 +51,9 @@ public class RegCharSet extends RegexObject {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		String[] arr = set.toArray(new String[set.size()]);
+		if(this.not == true){
+			sb.append("!");
+		}
 		if(arr.length == 1){
 			sb.append("'");
 			sb.append(arr[0]);

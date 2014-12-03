@@ -13,6 +13,7 @@ public abstract class RegexObject {
 	protected RegexObject parent;
 	public boolean beginWith;
 	public boolean endWith;
+	public boolean not;
 
 	public RegexObject(ParsingObject po) {
 		this(po, null);
@@ -22,6 +23,7 @@ public abstract class RegexObject {
 		this.parent = parent;
 		this.beginWith = false;
 		this.endWith = false;
+		this.not = false;
 		this.ref = po;
 		this.list = new ArrayList<RegexObject>();
 	}
