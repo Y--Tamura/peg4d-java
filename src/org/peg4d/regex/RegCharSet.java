@@ -24,6 +24,10 @@ public class RegCharSet extends RegexObject {
 		if(s.length() == 1) {
 			set.add(s);
 			return;
+		}else if(s.length() == 2 && s.charAt(0)=='\\'){
+			//escaped char
+			set.add(s);
+			return;
 		}
 		int i = 1;
 		int max = s.length() - 1;

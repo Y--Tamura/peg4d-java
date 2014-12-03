@@ -56,6 +56,7 @@ public class RegexObjectConverter {
 			case "Char":
 			case "OneOf":
 			case "ExceptFor":
+			case "EscapedChar":
 				return new RegCharSet(e);
 			case "Block":
 				RegSeq roBlock = createSequence(e.get(1));
