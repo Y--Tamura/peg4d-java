@@ -44,6 +44,9 @@ public class RegCharSet extends RegexObject {
 					set.add(String.valueOf(j));
 				}
 				i += 3;
+			} else if(s.charAt(i)=='\\'){
+				set.add(s.substring(i, next2));
+				i += 2;
 			} else {
 				set.add(s.substring(i, next));
 				++i;
