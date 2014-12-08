@@ -60,6 +60,10 @@ public abstract class RegexObject {
 		return this.ref;
 	}
 
+	public String getTag(){
+		return this.quantifier.getLabel();
+	}
+
 	private boolean is(ParsingObject parsingObject, String string) {
 		return parsingObject.getTag().toString().equals(string);
 	}
@@ -94,15 +98,4 @@ public abstract class RegexObject {
 			this.add(ro);
 		}
 	}
-
-	public boolean hasQuantifier(String tag) {
-		if(this.quantifier == null) {
-			return false;
-		}
-		if(this.quantifier.getLabel().equals(tag)) {
-			return true;
-		}
-		return false;
-	}
-
 }

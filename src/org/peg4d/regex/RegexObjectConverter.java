@@ -94,97 +94,51 @@ public class RegexObjectConverter {
 				//pi((ab), c) -> pi(ab, c)
 				return pi(child, continuation);
 			}
-			else {
-				if(child instanceof RegCharSet && child.hasQuantifier("ZeroMoreL")) {
-					int continuation_size = continuation.size();
-					if(continuation_size > 0) {
-						//a*a
-						RegexObject rHead = continuation.get(0);
-						RegCharSet charSet = (RegCharSet)child;
-						if(rHead instanceof RegCharSet && charSet.contains(rHead)) {
-							RegCharSet rHeadChar = (RegCharSet)continuation.popHead();
-							RegNonTerminal nt = new RegNonTerminal(createId());
-							continuation.pushHead(nt);
-							createNewLongestZeroMoreRule(rHeadChar, nt);
-							return continuation;
-						}
-					}
-				}else if(child instanceof RegCharSet && child.hasQuantifier("ZeroMoreS")) {
-					int continuation_size = continuation.size();
-					if(continuation_size > 0) {
-						//a+a
-						RegexObject rHead = continuation.get(0);
-						RegCharSet charSet = (RegCharSet)child;
-						if(rHead instanceof RegCharSet && charSet.contains(rHead)) {
-							RegCharSet rHeadChar = (RegCharSet)continuation.popHead();
-							RegNonTerminal nt = new RegNonTerminal(createId());
-							continuation.pushHead(nt);
-							createNewShortestZeroMoreRule(rHeadChar, nt);
-							return continuation;
-						}
-					}
-				}else if(child instanceof RegCharSet && child.hasQuantifier("OneMoreL")) {
-					int continuation_size = continuation.size();
-					if(continuation_size > 0) {
-						//a+a
-						RegexObject rHead = continuation.get(0);
-						RegCharSet charSet = (RegCharSet)child;
-						if(rHead instanceof RegCharSet && charSet.contains(rHead)) {
-							RegCharSet rHeadChar = (RegCharSet)continuation.popHead();
-							RegNonTerminal nt = new RegNonTerminal(createId());
-							continuation.pushHead(nt);
-							createNewLongestZeroMoreRule(rHeadChar, nt);
-							continuation.pushHead(rHeadChar);
-							return continuation;
-						}
-					}
-				}else if(child instanceof RegCharSet && child.hasQuantifier("OneMoreS")) {
-					int continuation_size = continuation.size();
-					if(continuation_size > 0) {
-						//a+a
-						RegexObject rHead = continuation.get(0);
-						RegCharSet charSet = (RegCharSet)child;
-						if(rHead instanceof RegCharSet && charSet.contains(rHead)) {
-							RegCharSet rHeadChar = (RegCharSet)continuation.popHead();
-							RegNonTerminal nt = new RegNonTerminal(createId());
-							continuation.pushHead(nt);
-							createNewShortestZeroMoreRule(rHeadChar, nt);
-							continuation.pushHead(rHeadChar);
-							return continuation;
-						}
-					}
-				}else if(child instanceof RegCharSet && child.hasQuantifier("OptionalL")) {
-					int continuation_size = continuation.size();
-					if(continuation_size > 0) {
-						//a+a
-						RegexObject rHead = continuation.get(0);
-						RegCharSet charSet = (RegCharSet)child;
-						if(rHead instanceof RegCharSet && charSet.contains(rHead)) {
-							RegCharSet rHeadChar = (RegCharSet)continuation.popHead();
-							RegNonTerminal nt = new RegNonTerminal(createId());
-							continuation.pushHead(nt);
-							createNewLongestOptionalRule(rHeadChar, nt);
-							return continuation;
-						}
-					}
-				}else if(child instanceof RegCharSet && child.hasQuantifier("OptionalS")) {
-					int continuation_size = continuation.size();
-					if(continuation_size > 0) {
-						//a+a
-						RegexObject rHead = continuation.get(0);
-						RegCharSet charSet = (RegCharSet)child;
-						if(rHead instanceof RegCharSet && charSet.contains(rHead)) {
-							RegCharSet rHeadChar = (RegCharSet)continuation.popHead();
-							RegNonTerminal nt = new RegNonTerminal(createId());
-							continuation.pushHead(nt);
-							createNewShortestOptionalRule(rHeadChar, nt);
-							return continuation;
-						}
+			else if(child instanceof RegCharSet && continuation.size() > 0){
+				RegexObject rHead = continuation.get(0);
+				RegCharSet charSet = (RegCharSet)child;
+				if(rHead instanceof RegCharSet && charSet.contains(rHead)){
+					RegCharSet rHeadChar = (RegCharSet)continuation.popHead();
+					RegNonTerminal nt = new RegNonTerminal(createId());
+					switch(child.getTag()){
+					case "ZeroMoreL":	//a*a
+						continuation.pushHead(nt);
+						createNewLongestZeroMoreRule(rHeadChar, nt);
+						return continuation;
+					case "ZeroMoreS":	//a*?a
+						continuation.pushHead(nt);
+						createNewShortestZeroMoreRule(rHeadChar, nt);
+						return continuation;
+					case "OneMoreL":	//a+a
+						continuation.pushHead(nt);
+						createNewLongestZeroMoreRule(rHeadChar, nt);
+						continuation.pushHead(rHeadChar);
+						return continuation;
+					case "OneMoreS":	//a+?a
+						continuation.pushHead(nt);
+						createNewShortestZeroMoreRule(rHeadChar, nt);
+						continuation.pushHead(rHeadChar);
+						return continuation;
+					case "OptionalL":	//a?a
+						continuation.pushHead(nt);
+						createNewLongestOptionalRule(rHeadChar, nt);
+						return continuation;
+					case "OptionalS": 	//a??a
+						continuation.pushHead(nt);
+						createNewShortestOptionalRule(rHeadChar, nt);
+						return continuation;
+					default:
+						System.err.print("Sorry!!");
+						return null;
 					}
 				}
 				//(2)
 				target.concat(continuation);
 				return target;
+			}
+			else{
+				System.err.println("Sorry!!");
+				return null;
 			}
 		}
 		else {
