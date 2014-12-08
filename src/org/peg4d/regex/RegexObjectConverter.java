@@ -95,7 +95,7 @@ public class RegexObjectConverter {
 				return pi(child, continuation);
 			}
 			else {
-				if(child instanceof RegCharSet && child.isZeroMore()) {
+				if(child instanceof RegCharSet && child.hasQuantifier("ZeroMoreL")) {
 					int continuation_size = continuation.size();
 					if(continuation_size > 0) {
 						//a*a
@@ -106,6 +106,35 @@ public class RegexObjectConverter {
 							RegNonTerminal nt = new RegNonTerminal(createId());
 							continuation.pushHead(nt);
 							createNewZeroMoreRule(rHeadChar, nt);
+							return continuation;
+						}
+					}
+				}else if(child instanceof RegCharSet && child.hasQuantifier("OneMoreL")) {
+					int continuation_size = continuation.size();
+					if(continuation_size > 0) {
+						//a+a
+						RegexObject rHead = continuation.get(0);
+						RegCharSet charSet = (RegCharSet)child;
+						if(rHead instanceof RegCharSet && charSet.contains(rHead)) {
+							RegCharSet rHeadChar = (RegCharSet)continuation.popHead();
+							RegNonTerminal nt = new RegNonTerminal(createId());
+							continuation.pushHead(nt);
+							createNewZeroMoreRule(rHeadChar, nt);
+							continuation.pushHead(rHeadChar);
+							return continuation;
+						}
+					}
+				}else if(child instanceof RegCharSet && child.hasQuantifier("OptionalL")) {
+					int continuation_size = continuation.size();
+					if(continuation_size > 0) {
+						//a+a
+						RegexObject rHead = continuation.get(0);
+						RegCharSet charSet = (RegCharSet)child;
+						if(rHead instanceof RegCharSet && charSet.contains(rHead)) {
+							RegCharSet rHeadChar = (RegCharSet)continuation.popHead();
+							RegNonTerminal nt = new RegNonTerminal(createId());
+							continuation.pushHead(nt);
+							createNewOptionalRule(rHeadChar, nt);
 							return continuation;
 						}
 					}
@@ -129,6 +158,21 @@ public class RegexObjectConverter {
 		RegSeq s1 = new RegSeq();
 		s1.add(rHeadChar);
 		s1.add(nt);
+		RegSeq s2 = new RegSeq();
+		s2.add(rHeadChar);
+		choice.add(s1);
+		choice.add(s2);
+		newRule.add(choice);
+		rules.put(nt.toString(), newRule);
+	}
+
+	private void createNewOptionalRule(RegCharSet rHeadChar, RegNonTerminal nt) {
+		//E0 = a a / a
+		RegSeq newRule = new RegSeq();
+		RegChoice choice = new RegChoice();
+		RegSeq s1 = new RegSeq();
+		s1.add(rHeadChar);
+		s1.add(rHeadChar);
 		RegSeq s2 = new RegSeq();
 		s2.add(rHeadChar);
 		choice.add(s1);

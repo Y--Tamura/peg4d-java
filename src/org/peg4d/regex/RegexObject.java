@@ -95,11 +95,11 @@ public abstract class RegexObject {
 		}
 	}
 
-	public boolean isZeroMore() {
+	public boolean hasQuantifier(String tag) {
 		if(this.quantifier == null) {
 			return false;
 		}
-		if(this.quantifier.getLabel().equals("ZeroMoreL")) {
+		if(this.quantifier.getLabel().equals(tag)) {
 			return true;
 		}
 		return false;
