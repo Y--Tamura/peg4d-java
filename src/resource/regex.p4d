@@ -2,13 +2,13 @@
 
 
 File
-	= { ( ('#' _ @Comment BREAK? ) / @TopLevel BREAK? / _ BREAK? )* #Source } !.
+	= { ( ('#' _ @Comment BREAK? ) / @TopLevel / _ BREAK? )* #Source } !.
 
 Chunk
-	= Statement
+	= Statement _ BREAK?
 
 TopLevel
-	= _ Statement _ BREAK? _
+	= _ Statement _ BREAK?
 
 Statement
 	= { (@LogOp)+ #Regex }
@@ -21,6 +21,9 @@ Comment
 
 BREAK
 	= '\n' / '\r\n' / '\r'
+
+OCTDIGIT
+	= [0-7]
 
 DECDIGIT
 	= [0-9]
@@ -69,13 +72,14 @@ METALETTER
 
 SYMBOL
 	= '&' !'&' / '/' / '@' / '_' / '#' / '%' / ',' / '-'
-	/ ':' / ';' / '<' / '>' / '=' / '~' / '`'
+	/ ':' / ';' / '<' / '>' / '=' / '~' / '`' / '"'
 
 UNICODE
 	= '\\u' HEXDIGIT HEXDIGIT HEXDIGIT HEXDIGIT
 
 ASCII
 	= '\\x' HEXDIGIT HEXDIGIT?
+	/ '\\0' OCTDIGIT OCTDIGIT?
 
 Token
 	= { ( @[0]{ '^' #BeginWith })? _   @[1]ParenBlock                (@[2]Quantifier)? _ ( @[3]{ '$' !DECDIGIT !'{' !'$' !'`' !'\'' #EndWith })? #Stmt }
@@ -94,7 +98,7 @@ Quantifier
 	/ { '{' _ @[0]{ DECDIGIT+ #Time } _ '}' '?'? #Times }
 
 ParenBlock
-	= _ '(' _ '?#' _ { (!')' .)* #Comment } ')'
+	= _ '(' _ '?#' _ { (!')' !BREAK .)* #Comment } ')'
 	/ { _ '(' _  '?' addEXTOPERATOR _ ( @LogOp / @ParenBlock / @Character / @Bracket )+ ')' _ }
 	/ { _ '(' ( @LogOp / @ParenBlock / @Character / @Bracket / _ )+ ')' _ #Block }
 
@@ -116,7 +120,7 @@ Items
 Item
 	= { '[:' @{CLASSNAME #ClassName} ':]' #Class}
 	/ { @{@Character #From} '-' @{@Character #To} #Range }
-	/ Character
+	/ BracketCharacter
 
 LogOp
 	= { (@Token)+ #Item } _ {@ ( '&&' #And / '|' #Or ) _ @{ (@Token)+ #Item } }+
@@ -130,6 +134,17 @@ Character
 	/ { LETTER #Char }
 	/ { @EscapeLetter #EscapedChar }
 	/ { '.' #WildCard }
+
+BracketCharacter
+	= { ESCAPE @{ DECDIGIT #BlockNum } !DECDIGIT #BlockReference }
+	/ { '$' @{ ( DECDIGIT / '$' / '`' / '\'' ) #BlockNum } !DECDIGIT #BlockReference }
+	/ { ESCAPE 'g' @{ DECDIGIT #BlockNum } !DECDIGIT #BlockReference }						//Python
+	/ { '${' @{ ( DECDIGIT / '$' / '`' / '\'' ) #BlockNum } '}' #BlockReference }			//Perl
+	/ { LETTER #Char }
+	/ { @EscapeLetter #EscapedChar }
+	/ { METACHARACTER #Char }
+	/ { '.' #Char }
+	/ { ' ' #Char }
 
 CLASSNAME
 	= 'ascii'  / 'ASCII'
