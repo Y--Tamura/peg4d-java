@@ -82,7 +82,7 @@ public abstract class RegexObject {
 
 	public RegexObject popContinuation() {
 		RegSeq rs = new RegSeq();
-		if(this.size() < 2) {
+		if(this.size() < 1) {
 			return rs;
 		}
 		rs.add(this.pop());
