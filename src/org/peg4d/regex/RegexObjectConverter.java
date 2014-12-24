@@ -92,7 +92,9 @@ public class RegexObjectConverter {
 			}
 			else if(child instanceof RegSeq) {
 				//pi((ab), c) -> pi(ab, c)
-				return pi(child, continuation);
+				//return pi(child, continutaion);
+				continuation.pushHead(child);
+				return continuation;
 			}
 			else if(child instanceof RegCharSet && continuation.size() > 0){
 				RegexObject rHead = continuation.get(0);
