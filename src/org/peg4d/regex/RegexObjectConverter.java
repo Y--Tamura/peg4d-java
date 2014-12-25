@@ -93,8 +93,15 @@ public class RegexObjectConverter {
 			else if(child instanceof RegSeq) {
 				//pi((ab), c) -> pi(ab, c)
 				//return pi(child, continutaion);
-				continuation.pushHead(child);
-				return continuation;
+				if(!(continuation instanceof RegSeq)){
+					return pi(child, continuation);
+				}
+				else if(child.getList().toString().equals(continuation.get(0).getList().toString())){
+					// To convert by "pi"
+					continuation.pushHead(child);
+					return continuation;
+				}
+				else return pi(child, continuation);
 			}
 			else if(child instanceof RegCharSet && continuation.size() > 0){
 				RegexObject rHead = continuation.get(0);
@@ -138,6 +145,9 @@ public class RegexObjectConverter {
 				target.concat(continuation);
 				return target;
 			}
+			// example: (ab)*ab
+//			else if(){
+//			}
 			else{
 				System.err.println("Sorry!!");
 				return null;
