@@ -96,7 +96,6 @@ public class RegexObjectConverter {
 				if(!(continuation instanceof RegSeq)){
 					return pi(child, continuation);
 				}
-//				else if(child.getList().toString().equals(continuation.get(0).getList().toString())){
 				else if(((RegSeq) child).contains(continuation)){
 				// To convert by "pi"
 					continuation.pushHead(child);
@@ -114,47 +113,14 @@ public class RegexObjectConverter {
 				RegexObject rHead = continuation.get(0);
 				RegCharSet charSet = (RegCharSet)child;
 				if(rHead instanceof RegCharSet && charSet.contains(rHead)){
-					RegCharSet rHeadChar = (RegCharSet)continuation.popHead();
-					RegNonTerminal nt = new RegNonTerminal(createId());
-					switch(child.getTag()){
-					case "ZeroMoreL":	//a*a
-						continuation.pushHead(nt);
-						createNewLongestZeroMoreRule(rHeadChar, nt);
-						return continuation;
-					case "ZeroMoreS":	//a*?a
-						continuation.pushHead(nt);
-						createNewShortestZeroMoreRule(rHeadChar, nt);
-						return continuation;
-					case "OneMoreL":	//a+a
-						continuation.pushHead(nt);
-						createNewLongestZeroMoreRule(rHeadChar, nt);
-						continuation.pushHead(rHeadChar);
-						return continuation;
-					case "OneMoreS":	//a+?a
-						continuation.pushHead(nt);
-						createNewShortestZeroMoreRule(rHeadChar, nt);
-						continuation.pushHead(rHeadChar);
-						return continuation;
-					case "OptionalL":	//a?a
-						continuation.pushHead(nt);
-						createNewLongestOptionalRule(rHeadChar, nt);
-						return continuation;
-					case "OptionalS": 	//a??a
-						continuation.pushHead(nt);
-						createNewShortestOptionalRule(rHeadChar, nt);
-						return continuation;
-					default:
-						System.err.print("Sorry!!");
-						return null;
-					}
+					return continuationBasedConversion(charSet, continuation);
 				}
 				//(2)
+				else{
 				target.concat(continuation);
 				return target;
+				}
 			}
-			// example: (ab)*ab
-//			else if(){
-//			}
 			else{
 				System.err.println("Sorry!!");
 				return null;
@@ -164,6 +130,42 @@ public class RegexObjectConverter {
 			//(3)
 			RegexObject c2 = target.popContinuation();
 			return pi(target, pi(c2, continuation));
+		}
+	}
+
+	private RegexObject continuationBasedConversion(RegCharSet rcLeft, RegexObject roRight){
+		RegCharSet rHeadChar = (RegCharSet)roRight.popHead();
+		RegNonTerminal nt = new RegNonTerminal(createId());
+		switch(rcLeft.getTag()){
+		case "ZeroMoreL":	//a*a
+			roRight.pushHead(nt);
+			createNewLongestZeroMoreRule(rHeadChar, nt);
+			return roRight;
+		case "ZeroMoreS":	//a*?a
+			roRight.pushHead(nt);
+			createNewShortestZeroMoreRule(rHeadChar, nt);
+			return roRight;
+		case "OneMoreL":	//a+a
+			roRight.pushHead(nt);
+			createNewLongestZeroMoreRule(rHeadChar, nt);
+			roRight.pushHead(rHeadChar);
+			return roRight;
+		case "OneMoreS":	//a+?a
+			roRight.pushHead(nt);
+			createNewShortestZeroMoreRule(rHeadChar, nt);
+			roRight.pushHead(rHeadChar);
+			return roRight;
+		case "OptionalL":	//a?a
+			roRight.pushHead(nt);
+			createNewLongestOptionalRule(rHeadChar, nt);
+			return roRight;
+		case "OptionalS": 	//a??a
+			roRight.pushHead(nt);
+			createNewShortestOptionalRule(rHeadChar, nt);
+			return roRight;
+		default:
+			System.err.print("Sorry!!");
+			return null;
 		}
 	}
 
