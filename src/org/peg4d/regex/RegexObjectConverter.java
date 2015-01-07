@@ -96,12 +96,19 @@ public class RegexObjectConverter {
 				if(!(continuation instanceof RegSeq)){
 					return pi(child, continuation);
 				}
-				else if(child.getList().toString().equals(continuation.get(0).getList().toString())){
-					// To convert by "pi"
+//				else if(child.getList().toString().equals(continuation.get(0).getList().toString())){
+				else if(((RegSeq) child).contains(continuation)){
+				// To convert by "pi"
 					continuation.pushHead(child);
 					return continuation;
 				}
-				else return pi(child, continuation);
+				else if(child.getQuantifier() != null){
+					continuation.pushHead(child);
+					return continuation;
+				}
+				else{
+					return pi(child, continuation);
+				}
 			}
 			else if(child instanceof RegCharSet && continuation.size() > 0){
 				RegexObject rHead = continuation.get(0);

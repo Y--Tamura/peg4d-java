@@ -25,6 +25,7 @@ public abstract class RegexObject {
 		this.endWith = false;
 		this.not = false;
 		this.ref = po;
+		this.quantifier = null;
 		this.list = new ArrayList<RegexObject>();
 	}
 
@@ -38,6 +39,10 @@ public abstract class RegexObject {
 			if(po.size() > 3 && is(po.get(3), "EndWith")) {
 				endWith = true;
 			}
+	}
+
+	public Quantifier getQuantifier(){
+		return this.quantifier;
 	}
 
 	public void add(RegexObject e) {

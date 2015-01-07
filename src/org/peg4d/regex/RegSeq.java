@@ -14,6 +14,28 @@ public class RegSeq extends RegexObject {
 		this.addQuantifier(po);
 	}
 
+	public boolean contains(RegexObject obj){
+		if(this.size() == obj.size()){
+			boolean result = true;
+			int i;
+			for(i = 0; i < this.size(); i++){
+				if(!this.get(i).toString().equals(obj.get(i).toString())){
+					result = false;
+					break;
+				}
+			}
+			return result;
+		}
+		else if(this.size() == 1 && this.get(0) instanceof RegSeq){
+			return ((RegSeq)this.get(0)).contains(obj);
+		}
+		else if(obj.size() == 1 && obj.get(0) instanceof RegSeq){
+			return this.contains(obj.get(0));
+		}else{
+			return false;
+		}
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
