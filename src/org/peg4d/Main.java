@@ -387,6 +387,8 @@ public class Main {
 
 		Map<String, RegexObject> ro = new RegexObjectConverter(pego).convert();
 		RegexPegGenerator pegfile = new RegexPegGenerator(OutputFileName, ro);
+
+		System.out.println();
 		pegfile.writePeg();
 		pegfile.close();
 
