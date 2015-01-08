@@ -107,4 +107,6 @@ public abstract class RegexObject {
 			this.add(ro);
 		}
 	}
+
+	abstract String getLetter();
 }

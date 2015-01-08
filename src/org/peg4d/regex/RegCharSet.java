@@ -58,6 +58,14 @@ public class RegCharSet extends RegexObject {
 		} while(i < max);
 	}
 
+	public String getLetter() {
+		StringBuilder sb = new StringBuilder();
+		for(RegexObject e: list) {
+			sb.append(e.toString());
+		}
+		return sb.toString();
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();

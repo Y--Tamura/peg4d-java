@@ -9,6 +9,10 @@ public class RegNonTerminal extends RegexObject {
 		this.label = label;
 	}
 
+	public String getLetter() {
+		return "";
+	}
+
 	@Override
 	public String toString() {
 		return label;

@@ -16,6 +16,15 @@ public class RegChoice extends RegexObject {
 		super(po, parent);
 	}
 
+	public String getLetter() {
+		StringBuilder sb = new StringBuilder();
+		for(RegexObject e: list) {
+			RegCharSet rc = (RegCharSet) e;
+			sb.append(rc.getLetter());
+		}
+		return sb.toString();
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();

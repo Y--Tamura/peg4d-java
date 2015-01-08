@@ -20,15 +20,25 @@ public class RegSeq extends RegexObject {
 		String tmp = new String();
 
 		for(RegexObject e: this.list){
-			tmp = e.toString().trim();
-			strThis += tmp.replaceAll(" +", "");
+			tmp = e.getLetter();
+			strThis += tmp;
 		}
 
 		for(RegexObject e: obj.getList()){
-			tmp = e.toString().trim();
-			strObj += tmp.replaceAll(" +", "");
+			tmp = e.getLetter();
+			strObj += tmp;
 		}
+
 		return strThis.equals(strObj);
+	}
+
+	public String getLetter() {
+		StringBuilder sb = new StringBuilder();
+		for(RegexObject e: list) {
+			RegCharSet rc = (RegCharSet) e;
+			sb.append(rc.getLetter());
+		}
+		return sb.toString();
 	}
 
 	@Override
