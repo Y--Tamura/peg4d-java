@@ -15,25 +15,20 @@ public class RegSeq extends RegexObject {
 	}
 
 	public boolean contains(RegexObject obj){
-		if(this.size() == obj.size()){
-			boolean result = true;
-			int i;
-			for(i = 0; i < this.size(); i++){
-				if(!this.get(i).toString().equals(obj.get(i).toString())){
-					result = false;
-					break;
-				}
-			}
-			return result;
+		String strThis = new String();
+		String strObj = new String();
+		String tmp = new String();
+
+		for(RegexObject e: this.list){
+			tmp = e.toString().trim();
+			strThis += tmp.replaceAll(" +", "");
 		}
-		else if(this.size() == 1 && this.get(0) instanceof RegSeq){
-			return ((RegSeq)this.get(0)).contains(obj);
+
+		for(RegexObject e: obj.getList()){
+			tmp = e.toString().trim();
+			strObj += tmp.replaceAll(" +", "");
 		}
-		else if(obj.size() == 1 && obj.get(0) instanceof RegSeq){
-			return this.contains(obj.get(0));
-		}else{
-			return false;
-		}
+		return strThis.equals(strObj);
 	}
 
 	@Override
