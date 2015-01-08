@@ -97,9 +97,10 @@ public class RegexObjectConverter {
 					return pi(child, continuation);
 				}
 				else if(((RegSeq) child).contains(continuation)){
-				// To convert by "pi"
 					continuation.pushHead(child);
-					return continuation;
+					continuation = continuationBasedConversion((RegSeq) child, continuation);
+					child.rmQuantifier();
+					return continuation.get(0);
 				}
 				else if(child.getQuantifier() != null){
 					continuation.pushHead(child);
@@ -130,6 +131,42 @@ public class RegexObjectConverter {
 			//(3)
 			RegexObject c2 = target.popContinuation();
 			return pi(target, pi(c2, continuation));
+		}
+	}
+
+	private RegexObject continuationBasedConversion(RegSeq rcLeft, RegexObject roRight){
+		RegSeq rHeadSeq = (RegSeq)roRight.popHead();
+		RegNonTerminal nt = new RegNonTerminal(createId());
+		switch(rcLeft.getTag()){
+		case "ZeroMoreL":	//a*a
+			roRight.pushHead(nt);
+			createNewLongestZeroMoreRule(rHeadSeq, nt);
+			return roRight;
+		case "ZeroMoreS":	//a*?a
+			roRight.pushHead(nt);
+			createNewShortestZeroMoreRule(rHeadSeq, nt);
+			return roRight;
+		case "OneMoreL":	//a+a
+			roRight.pushHead(nt);
+			createNewLongestZeroMoreRule(rHeadSeq, nt);
+			roRight.pushHead(rHeadSeq);
+			return roRight;
+		case "OneMoreS":	//a+?a
+			roRight.pushHead(nt);
+			createNewShortestZeroMoreRule(rHeadSeq, nt);
+			roRight.pushHead(rHeadSeq);
+			return roRight;
+		case "OptionalL":	//a?a
+			roRight.pushHead(nt);
+			createNewLongestOptionalRule(rHeadSeq, nt);
+			return roRight;
+		case "OptionalS": 	//a??a
+			roRight.pushHead(nt);
+			createNewShortestOptionalRule(rHeadSeq, nt);
+			return roRight;
+		default:
+			System.err.print("Sorry!!");
+			return null;
 		}
 	}
 
@@ -169,29 +206,29 @@ public class RegexObjectConverter {
 		}
 	}
 
-	private void createNewLongestZeroMoreRule(RegCharSet rHeadChar, RegNonTerminal nt) {
+	private void createNewLongestZeroMoreRule(RegexObject rHead, RegNonTerminal nt) {
 		//E0 = a E0 / a
 		RegSeq newRule = new RegSeq();
 		RegChoice choice = new RegChoice();
 		RegSeq s1 = new RegSeq();
-		s1.add(rHeadChar);
+		s1.add(rHead);
 		s1.add(nt);
 		RegSeq s2 = new RegSeq();
-		s2.add(rHeadChar);
+		s2.add(rHead);
 		choice.add(s1);
 		choice.add(s2);
 		newRule.add(choice);
 		rules.put(nt.toString(), newRule);
 	}
 
-	private void createNewShortestZeroMoreRule(RegCharSet rHeadChar, RegNonTerminal nt) {
+	private void createNewShortestZeroMoreRule(RegexObject rHead, RegNonTerminal nt) {
 		//E0 = a / a E0
 		RegSeq newRule = new RegSeq();
 		RegChoice choice = new RegChoice();
 		RegSeq s1 = new RegSeq();
-		s1.add(rHeadChar);
+		s1.add(rHead);
 		RegSeq s2 = new RegSeq();
-		s2.add(rHeadChar);
+		s2.add(rHead);
 		s2.add(nt);
 		choice.add(s1);
 		choice.add(s2);
@@ -199,30 +236,30 @@ public class RegexObjectConverter {
 		rules.put(nt.toString(), newRule);
 	}
 
-	private void createNewLongestOptionalRule(RegCharSet rHeadChar, RegNonTerminal nt) {
+	private void createNewLongestOptionalRule(RegexObject rHead, RegNonTerminal nt) {
 		//E0 = a a / a
 		RegSeq newRule = new RegSeq();
 		RegChoice choice = new RegChoice();
 		RegSeq s1 = new RegSeq();
-		s1.add(rHeadChar);
-		s1.add(rHeadChar);
+		s1.add(rHead);
+		s1.add(rHead);
 		RegSeq s2 = new RegSeq();
-		s2.add(rHeadChar);
+		s2.add(rHead);
 		choice.add(s1);
 		choice.add(s2);
 		newRule.add(choice);
 		rules.put(nt.toString(), newRule);
 	}
 
-	private void createNewShortestOptionalRule(RegCharSet rHeadChar, RegNonTerminal nt) {
+	private void createNewShortestOptionalRule(RegexObject rHead, RegNonTerminal nt) {
 		//E0 = a / a a
 		RegSeq newRule = new RegSeq();
 		RegChoice choice = new RegChoice();
 		RegSeq s1 = new RegSeq();
-		s1.add(rHeadChar);
+		s1.add(rHead);
 		RegSeq s2 = new RegSeq();
-		s2.add(rHeadChar);
-		s2.add(rHeadChar);
+		s2.add(rHead);
+		s2.add(rHead);
 		choice.add(s1);
 		choice.add(s2);
 		newRule.add(choice);

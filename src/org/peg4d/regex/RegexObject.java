@@ -45,6 +45,10 @@ public abstract class RegexObject {
 		return this.quantifier;
 	}
 
+	public void rmQuantifier(){
+		this.quantifier = null;
+	}
+
 	public void add(RegexObject e) {
 		this.list.add(e);
 	}
