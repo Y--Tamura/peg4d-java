@@ -19,6 +19,7 @@ public class RegexPegGenerator extends Generator {
 	}
 
 	public void writePeg() {
+		writeLn("// regex PEG\n");
 		writeHeader();
 		RegexObject r = rules.get("TopLevel");
 		write("TopLevel = { ");

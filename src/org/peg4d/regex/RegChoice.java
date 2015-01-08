@@ -18,19 +18,18 @@ public class RegChoice extends RegexObject {
 
 	public String getLetter() {
 		StringBuilder sb = new StringBuilder();
-		for(RegexObject e: list) {
-			RegCharSet rc = (RegCharSet) e;
-			sb.append(rc.getLetter());
+		for(int i = 0; i < this.size() - 1; i++) {
+			sb.append(this.get(i).getLetter());
+			sb.append(" /");
 		}
+		sb.append(this.get(this.size() - 1).getLetter());
 		return sb.toString();
 	}
 
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		if(quantifier != null) {
-			sb.append("(");
-		}
+		sb.append("(");
 		if(list.size() > 0) {
 			sb.append(list.get(0).toString());
 		}
@@ -38,8 +37,8 @@ public class RegChoice extends RegexObject {
 			sb.append(" / ");
 			sb.append(list.get(i).toString());
 		}
+		sb.append(")");
 		if(quantifier != null) {
-			sb.append(")");
 			sb.append(quantifier.toString());
 		}
 		return sb.toString();

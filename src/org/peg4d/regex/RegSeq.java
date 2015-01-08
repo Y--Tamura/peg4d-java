@@ -35,8 +35,7 @@ public class RegSeq extends RegexObject {
 	public String getLetter() {
 		StringBuilder sb = new StringBuilder();
 		for(RegexObject e: list) {
-			RegCharSet rc = (RegCharSet) e;
-			sb.append(rc.getLetter());
+			sb.append(e.getLetter());
 		}
 		return sb.toString();
 	}
