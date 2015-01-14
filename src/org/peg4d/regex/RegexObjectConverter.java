@@ -97,10 +97,16 @@ public class RegexObjectConverter {
 					return pi(child, continuation);
 				}
 				else if(((RegSeq) child).contains(continuation)){
-					continuation.pushHead(child);
-					continuation = continuationBasedConversion((RegSeq) child, continuation);
-					child.rmQuantifier();
-					return continuation.get(0);
+					if(child.getQuantifier() != null && !"Times".equals(child.getTag())){
+						continuation.pushHead(child);
+						continuation = continuationBasedConversion((RegSeq) child, continuation);
+						child.rmQuantifier();
+						return continuation.get(0);
+					}
+					else{
+						target.concat(continuation);
+						return target;
+					}
 				}
 				else if(child.getQuantifier() != null){
 					continuation.pushHead(child);
@@ -114,7 +120,13 @@ public class RegexObjectConverter {
 				RegexObject rHead = continuation.get(0);
 				RegCharSet charSet = (RegCharSet)child;
 				if(rHead instanceof RegCharSet && charSet.contains(rHead)){
-					return continuationBasedConversion(charSet, continuation);
+					if(charSet.getQuantifier() != null && !"Times".equals(charSet.getTag())){
+						return continuationBasedConversion(charSet, continuation);
+					}
+					else{
+						target.concat(continuation);
+						return target;
+					}
 				}
 				//(2)
 				else{
