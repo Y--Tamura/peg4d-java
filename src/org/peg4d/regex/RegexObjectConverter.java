@@ -63,7 +63,7 @@ public class RegexObjectConverter {
 				roBlock.addQuantifier(e);
 				return roBlock;
 			default:
-				System.err.println("Sorry!!!");
+				System.err.println("Sorry!! An error occurred on 'createRegexObject'.");
 				return null;
 			}
 		}
@@ -123,7 +123,7 @@ public class RegexObjectConverter {
 				}
 			}
 			else{
-				System.err.println("Sorry!!");
+				System.err.println("Sorry!! An error occurred on 'pi'.");
 				return null;
 			}
 		}
@@ -165,7 +165,7 @@ public class RegexObjectConverter {
 			createNewShortestOptionalRule(rHeadSeq, nt);
 			return roRight;
 		default:
-			System.err.print("Sorry!!");
+			System.err.print("Sorry!! An error occurred on conversion(seq).");
 			return null;
 		}
 	}
@@ -201,7 +201,7 @@ public class RegexObjectConverter {
 			createNewShortestOptionalRule(rHeadChar, nt);
 			return roRight;
 		default:
-			System.err.print("Sorry!!");
+			System.err.print("Sorry!! An error occurred on conversion(charset).");
 			return null;
 		}
 	}
