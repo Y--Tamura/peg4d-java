@@ -70,6 +70,9 @@ public class RegCharSet extends RegexObject {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		String[] arr = set.toArray(new String[set.size()]);
+		if(this.quantifier != null && this.quantifier.hasRepeat() && arr.length > 1){
+			sb.append("(");
+		}
 		if(this.not == true){
 			sb.append("!");
 		}
@@ -95,7 +98,12 @@ public class RegCharSet extends RegexObject {
 		if(this.not == true){
 			sb.append(" .");
 		}
-		return sb.toString();
+		if(this.quantifier != null && this.quantifier.hasRepeat()){
+			if(arr.length > 1) sb.append(")");
+			return this.quantifier.repeatRule(sb.toString());
+		}else{
+			return sb.toString();
+		}
 	}
 
 	public boolean contains(RegexObject obj) {

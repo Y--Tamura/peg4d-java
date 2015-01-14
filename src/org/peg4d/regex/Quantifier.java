@@ -1,5 +1,7 @@
 package org.peg4d.regex;
 
+import java.util.zip.Inflater;
+
 import org.peg4d.ParsingObject;
 
 public class Quantifier {
@@ -16,7 +18,7 @@ public class Quantifier {
 			ParsingObject p = po.get(0);
 			if(p.getTag().toString().equals("AndMore")) {
 				this.setMin(Integer.parseInt(p.getText()));
-			} else {
+			} else if(p.getTag().toString().equals("Time")) {
 				this.setTime(Integer.parseInt(p.getText()));
 			}
 			if(po.size() > 1) {
@@ -59,19 +61,60 @@ public class Quantifier {
 		return sign;
 	}
 
+	public boolean hasRepeat(){
+		if(this.time == -1 && this.min == -1 && this.max == -1) return false;
+		else return true;
+	}
+
+	public String repeatRule(String rule){
+		StringBuilder sb = new StringBuilder();
+		sb.append("( ");
+		if(this.time != -1){
+			sb.append(rule);
+			for(int i = 1; i < this.time; i++){
+				sb.append(" ");
+				sb.append(rule);
+			}
+		}
+		else if(this.max != -1 && this.min != -1){
+			sb.append(rule);
+			for(int i = max; i >= min; i--){
+				for(int j = 0; j < i; j++){
+					sb.append(" ");
+					sb.append(rule);
+				}
+				if(i != min) sb.append(" /");
+			}
+		}
+		else if(this.max != -1){
+			for(int i = max; i >= 1; i--){
+				for(int j = 0; j < i; j++){
+					sb.append(" ");
+					sb.append(rule);
+				}
+				if(i != 1) sb.append(" /");
+			}
+		}
+		else if(this.min != -1){
+			sb.append(rule);
+			for(int i = 1; i < min; i++){
+				sb.append(" ");
+				sb.append(rule);
+			}
+			sb.append("+");
+		}
+		sb.append(" )");
+		return sb.toString();
+	}
+
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
 		String s = getSign();
 		if(s != null) {
-			sb.append(s);
+			return s;
+//			return sb.toString();
 		} else {
-			sb.append("{");
-			sb.append(min);
-			sb.append(",");
-			sb.append(max);
-			sb.append("}");
+			return "";
 		}
-		return sb.toString();
 	}
 }

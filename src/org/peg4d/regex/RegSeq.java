@@ -54,6 +54,7 @@ public class RegSeq extends RegexObject {
 			sb.append(")");
 			sb.append(quantifier.toString());
 		}
-		return sb.toString();
+		if(this.quantifier != null && this.quantifier.hasRepeat()) return this.quantifier.repeatRule(sb.toString());
+		else return sb.toString();
 	}
 }
