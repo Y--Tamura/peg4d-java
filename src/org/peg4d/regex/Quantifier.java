@@ -1,7 +1,5 @@
 package org.peg4d.regex;
 
-import java.util.zip.Inflater;
-
 import org.peg4d.ParsingObject;
 
 public class Quantifier {
@@ -77,10 +75,9 @@ public class Quantifier {
 			}
 		}
 		else if(this.max != -1 && this.min != -1){
-			sb.append(rule);
-			for(int i = max; i >= min; i--){
+			for(int i = max ; i >= min; i--){
 				for(int j = 0; j < i; j++){
-					sb.append(" ");
+					if(!( i == max && j == 0 )) sb.append(" ");
 					sb.append(rule);
 				}
 				if(i != min) sb.append(" /");
@@ -89,7 +86,7 @@ public class Quantifier {
 		else if(this.max != -1){
 			for(int i = max; i >= 1; i--){
 				for(int j = 0; j < i; j++){
-					sb.append(" ");
+					if(!( i == max && j == 0 )) sb.append(" ");
 					sb.append(rule);
 				}
 				if(i != 1) sb.append(" /");
