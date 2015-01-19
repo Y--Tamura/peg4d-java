@@ -32,6 +32,7 @@ public class RegSeq extends RegexObject {
 		return strThis.equals(strObj);
 	}
 
+	@Override
 	public String getLetter() {
 		StringBuilder sb = new StringBuilder();
 		for(RegexObject e: list) {

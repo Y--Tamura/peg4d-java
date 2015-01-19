@@ -16,6 +16,7 @@ public class RegChoice extends RegexObject {
 		super(po, parent);
 	}
 
+	@Override
 	public String getLetter() {
 		StringBuilder sb = new StringBuilder();
 		for(int i = 0; i < this.size() - 1; i++) {

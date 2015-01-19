@@ -58,6 +58,7 @@ public class RegCharSet extends RegexObject {
 		} while(i < max);
 	}
 
+	@Override
 	public String getLetter() {
 		StringBuilder sb = new StringBuilder();
 		for(RegexObject e: list) {
