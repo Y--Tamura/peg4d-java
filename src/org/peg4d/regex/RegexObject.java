@@ -12,14 +12,12 @@ public abstract class RegexObject {
 	protected ParsingObject ref;
 	protected Quantifier quantifier;
 	protected RegexObject parent;
-	protected boolean refer;
 	public boolean beginWith;
 	public boolean endWith;
 	public boolean not;
 
 	public RegexObject(ParsingObject po) {
 		this.writePegMode = false;
-		this.refer = false;
 		this.beginWith = false;
 		this.endWith = false;
 		this.not = false;
@@ -97,14 +95,6 @@ public abstract class RegexObject {
 
 	public void setParent(RegexObject r){
 		this.parent = r;
-	}
-
-	public boolean getRefer(){
-		return this.refer;
-	}
-
-	public void setRefer(boolean b){
-		this.refer = b;
 	}
 
 	private boolean is(ParsingObject parsingObject, String string) {

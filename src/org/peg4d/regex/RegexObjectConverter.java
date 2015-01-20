@@ -87,11 +87,11 @@ public class RegexObjectConverter {
 				int refId = Integer.parseInt(e.get(1).get(0).getText());
 				String ntName = blockPrefix + refId;
 				RegexObject roBRefer = rules.get(ntName);
-				if(roBRefer != null){
+				if(roBRefer != null && (roBRefer.getParent()) instanceof RegNonTerminal){
 					RegNonTerminal rnBRefer = new RegNonTerminal(ntName);
 					rnBRefer.addQuantifier(e);
 					rnBRefer.setIsa();
-					roBRefer.getParent().setRefer(true);
+					((RegNonTerminal) roBRefer.getParent()).setRefer(true);
 					return rnBRefer;
 				}
 				else {

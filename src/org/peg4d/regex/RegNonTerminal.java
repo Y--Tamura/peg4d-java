@@ -6,6 +6,7 @@ public class RegNonTerminal extends RegexObject {
 	private String defName = null;
 	private final static String defSuffix = "_D";
 	private boolean isa = false;
+	private boolean refer = false;
 	private String label;
 
 	public RegNonTerminal(String label) {
@@ -28,6 +29,14 @@ public class RegNonTerminal extends RegexObject {
 
 	public boolean getIsa() {
 		return this.isa;
+	}
+
+	public void setRefer(boolean b){
+		this.refer = b;
+	}
+
+	public boolean getRefer(){
+		return this.refer;
 	}
 
 	@Override
