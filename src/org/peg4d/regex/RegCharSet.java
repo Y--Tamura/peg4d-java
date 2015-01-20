@@ -13,6 +13,7 @@ public class RegCharSet extends RegexObject {
 		super(po);
 		set = new LinkedHashSet<String>();
 		setCharSet(po.get(1).getText());
+		this.addQuantifier(po);
 	}
 
 	private void setCharSet(String s) {

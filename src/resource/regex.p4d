@@ -142,7 +142,7 @@ BracketCharacter
 	/ { '${' @{ ( DECDIGIT / '$' / '`' / '\'' ) #BlockNum } '}' #BlockReference }			//Perl
 	/ { LETTER #Char }
 	/ { @EscapeLetter #EscapedChar }
-	/ { METACHARACTER #Char }
+	/ { !']' METACHARACTER #Char }
 	/ { '.' #Char }
 	/ { ' ' #Char }
 
