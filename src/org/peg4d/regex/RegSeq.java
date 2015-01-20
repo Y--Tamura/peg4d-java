@@ -5,8 +5,6 @@ import org.peg4d.ParsingObject;
 
 public class RegSeq extends RegexObject {
 
-	private boolean refer = true;
-
 	public RegSeq() {
 		super(null);
 	}
@@ -34,14 +32,6 @@ public class RegSeq extends RegexObject {
 		return strThis.equals(strObj);
 	}
 
-	public boolean getRefer() {
-		return this.refer;
-	}
-
-	public void setNotRefer() {
-		this.refer = false;
-	}
-
 	@Override
 	public String getLetter() {
 		StringBuilder sb = new StringBuilder();
@@ -55,7 +45,7 @@ public class RegSeq extends RegexObject {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		if(quantifier != null) {
-			sb.append("(");
+			sb.append("( ");
 		}
 		for(RegexObject e: list) {
 			sb.append(e.toString());

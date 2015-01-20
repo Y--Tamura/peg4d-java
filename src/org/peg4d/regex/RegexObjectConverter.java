@@ -11,23 +11,34 @@ public class RegexObjectConverter {
 	private Map<String, RegexObject> rules;
 	private int ruleId = 0;
 	private final static String rulePrefix = "E";
+	private int blockId = 0;
+	private final static String blockPrefix = "B";
+	private int groupId = 0;
+	private final static String groupPrefix = "G";
 
 	public RegexObjectConverter(ParsingObject po) {
 		this.po = po;
 	}
 
-	private String createId() {
+	private String createRuleId() {
 		return rulePrefix + ruleId++;
+	}
+
+	private String createBlockId(){
+		return blockPrefix + blockId++;
+	}
+
+	private String createGroupId(){
+		return groupPrefix + groupId++;
 	}
 
 	public Map<String, RegexObject> convert() {
 		ParsingObject tokens = po.get(0);
 		RegSeq rs = new RegSeq();
+		rules = new HashMap<String, RegexObject>();
 		for(ParsingObject e: tokens) {
 			rs.add(createRegexObject(e));
 		}
-
-		rules = new HashMap<String, RegexObject>();
 		RegexObject continuation = rs.popContinuation();
 		RegexObject top = pi(rs, continuation);
 		rules.put("TopLevel", top);
@@ -35,12 +46,7 @@ public class RegexObjectConverter {
 	}
 
 	private RegSeq createSequence(ParsingObject po) {
-		return createSequence(po, false);
-	}
-
-	private RegSeq createSequence(ParsingObject po, boolean group) {
 		RegSeq r = new RegSeq();
-		if(group) r.setNotRefer();
 		for(ParsingObject child: po) {
 			r.add(createRegexObject(child));
 		}
@@ -64,13 +70,37 @@ public class RegexObjectConverter {
 			case "EscapedChar":
 				return new RegCharSet(e);
 			case "Block":
-				RegSeq roBlock = createSequence(e.get(1), false);
-				roBlock.addQuantifier(e);
-				return roBlock;
+				RegNonTerminal rnBlock = new RegNonTerminal(createBlockId());
+				RegSeq rsBlock = createSequence(e.get(1));
+
+				//Which one is better...?
+//				rsBlock.addQuantifier(e);
+				rnBlock.addQuantifier(e);
+
+				this.rules.put(rnBlock.toString(), rsBlock);
+				return rnBlock;
 			case "Group":
-				RegSeq roGroup = createSequence(e.get(1), true);
-				roGroup.addQuantifier(e);
-				return roGroup;
+				RegNonTerminal rnGroup = new RegNonTerminal(createGroupId());
+				RegSeq rsGroup = createSequence(e.get(1));
+
+				//Which one is better...?
+//				rsGroup.addQuantifier(e);
+				rnGroup.addQuantifier(e);
+
+				this.rules.put(rnGroup.toString(), rsGroup);
+				return rnGroup;
+			case "BlockReference":
+				int refId = Integer.parseInt(e.get(1).get(0).getText());
+				RegexObject roBRefer = rules.get("B" + --refId);
+				if(roBRefer != null){
+					RegNonTerminal rnBRefer = new RegNonTerminal("B" + refId);
+					rnBRefer.addQuantifier(e);
+					return rnBRefer;
+				}
+				else {
+					System.err.println("An undefined reference.");
+					return null;
+				}
 			default:
 				System.err.println("Sorry!! An error occurred on 'createRegexObject'.");
 				return null;
@@ -144,8 +174,10 @@ public class RegexObjectConverter {
 				}
 			}
 			else{
-				System.err.println("Sorry!! An error occurred on 'pi'.");
-				return null;
+				target.concat(continuation);
+				return target;
+//				System.err.println("Sorry!! An error occurred on 'pi'.");
+//				return null;
 			}
 		}
 		else {
@@ -157,7 +189,7 @@ public class RegexObjectConverter {
 
 	private RegexObject continuationBasedConversion(RegSeq rcLeft, RegexObject roRight){
 		RegSeq rHeadSeq = (RegSeq)roRight.popHead();
-		RegNonTerminal nt = new RegNonTerminal(createId());
+		RegNonTerminal nt = new RegNonTerminal(createRuleId());
 		switch(rcLeft.getTag()){
 		case "ZeroMoreL":	//a*a
 			roRight.pushHead(nt);
@@ -193,7 +225,7 @@ public class RegexObjectConverter {
 
 	private RegexObject continuationBasedConversion(RegCharSet rcLeft, RegexObject roRight){
 		RegCharSet rHeadChar = (RegCharSet)roRight.popHead();
-		RegNonTerminal nt = new RegNonTerminal(createId());
+		RegNonTerminal nt = new RegNonTerminal(createRuleId());
 		switch(rcLeft.getTag()){
 		case "ZeroMoreL":	//a*a
 			roRight.pushHead(nt);

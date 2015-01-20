@@ -16,7 +16,8 @@ public class RegNonTerminal extends RegexObject {
 
 	@Override
 	public String toString() {
-		return label;
+		if(this.quantifier == null) return label;
+		else return label + this.quantifier.toString();
 	}
 
 }
