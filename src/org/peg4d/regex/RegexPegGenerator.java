@@ -22,6 +22,7 @@ public class RegexPegGenerator extends Generator {
 		writeLn("// regex PEG\n");
 		writeHeader();
 		RegexObject r = rules.get("TopLevel");
+		r.setWriteMode(true);
 		write("TopLevel = { ");
 		this.write(r.toString());
 		writeLn(" #Matched }");
@@ -34,6 +35,7 @@ public class RegexPegGenerator extends Generator {
 			writeLn(s.getKey());
 			write("    ");
 			write("= ");
+			s.getValue().setWriteMode(true);
 			writeLn(s.getValue().toString());
 		}
 	}
@@ -46,5 +48,4 @@ public class RegexPegGenerator extends Generator {
 		writeLn("_ = [ \\t\\r\\n]*");
 		writeLn("");
 	}
-
 }

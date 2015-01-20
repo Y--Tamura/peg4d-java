@@ -7,6 +7,7 @@ import org.peg4d.ParsingObject;
 
 public abstract class RegexObject {
 
+	protected boolean writePegMode = false;
 	protected List<RegexObject> list;
 	protected ParsingObject ref;
 	protected Quantifier quantifier;
@@ -105,6 +106,13 @@ public abstract class RegexObject {
 			}
 		} else {
 			this.add(ro);
+		}
+	}
+
+	public void setWriteMode(boolean b){
+		this.writePegMode = b;
+		for(RegexObject r: list){
+			r.setWriteMode(b);
 		}
 	}
 

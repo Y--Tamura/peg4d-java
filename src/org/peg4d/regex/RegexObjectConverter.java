@@ -1,6 +1,6 @@
 package org.peg4d.regex;
 
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.Map;
 
 import org.peg4d.ParsingObject;
@@ -9,11 +9,11 @@ public class RegexObjectConverter {
 
 	private ParsingObject po;
 	private Map<String, RegexObject> rules;
-	private int ruleId = 0;
+	private int ruleId = 1;
 	private final static String rulePrefix = "E";
-	private int blockId = 0;
+	private int blockId = 1;
 	private final static String blockPrefix = "B";
-	private int groupId = 0;
+	private int groupId = 1;
 	private final static String groupPrefix = "G";
 
 	public RegexObjectConverter(ParsingObject po) {
@@ -35,7 +35,7 @@ public class RegexObjectConverter {
 	public Map<String, RegexObject> convert() {
 		ParsingObject tokens = po.get(0);
 		RegSeq rs = new RegSeq();
-		rules = new HashMap<String, RegexObject>();
+		rules = new TreeMap<String, RegexObject>();
 		for(ParsingObject e: tokens) {
 			rs.add(createRegexObject(e));
 		}
@@ -72,29 +72,24 @@ public class RegexObjectConverter {
 			case "Block":
 				RegNonTerminal rnBlock = new RegNonTerminal(createBlockId());
 				RegSeq rsBlock = createSequence(e.get(1));
-
-				//Which one is better...?
-//				rsBlock.addQuantifier(e);
 				rnBlock.addQuantifier(e);
-
+				rnBlock.setDefName();
 				this.rules.put(rnBlock.toString(), rsBlock);
 				return rnBlock;
 			case "Group":
 				RegNonTerminal rnGroup = new RegNonTerminal(createGroupId());
 				RegSeq rsGroup = createSequence(e.get(1));
-
-				//Which one is better...?
-//				rsGroup.addQuantifier(e);
 				rnGroup.addQuantifier(e);
-
 				this.rules.put(rnGroup.toString(), rsGroup);
 				return rnGroup;
 			case "BlockReference":
 				int refId = Integer.parseInt(e.get(1).get(0).getText());
-				RegexObject roBRefer = rules.get("B" + --refId);
+				String ntName = blockPrefix + refId;
+				RegexObject roBRefer = rules.get(ntName);
 				if(roBRefer != null){
-					RegNonTerminal rnBRefer = new RegNonTerminal("B" + refId);
+					RegNonTerminal rnBRefer = new RegNonTerminal(ntName);
 					rnBRefer.addQuantifier(e);
+					rnBRefer.setIsa();
 					return rnBRefer;
 				}
 				else {
