@@ -21,6 +21,14 @@ public class RegCharSet extends RegexObject {
 	}
 
 	private void setCharSet(String s) {
+		if(s.startsWith("\\u")){
+//			s = unicodeToStr(s);
+			set.add(s);
+			return;
+		} else if(s.startsWith("\\")) {
+			s = s.substring(1);
+		}
+
 		if(s.length() == 1) {
 			set.add(s);
 			return;
@@ -57,6 +65,13 @@ public class RegCharSet extends RegexObject {
 			}
 		} while(i < max);
 	}
+
+//	private String unicodeToStr(String unicode){
+//		int codePoint[] = new int[1];
+//		codePoint[0] = Integer.parseInt(unicode.substring(2), 16);
+//		String string = new String(codePoint, 0, 1);
+//		return string;
+//	}
 
 	@Override
 	public String getLetter() {
