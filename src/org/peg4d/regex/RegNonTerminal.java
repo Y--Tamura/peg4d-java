@@ -41,7 +41,7 @@ public class RegNonTerminal extends RegexObject {
 			if(isa){
 				return "<isa " + defName + ">";
 			}
-			else if(label.startsWith("B")){ //FIXME
+			else if(refer){
 				return "<def " + defName + " " + label + ">";
 			}else{
 				if(this.quantifier == null) return label;

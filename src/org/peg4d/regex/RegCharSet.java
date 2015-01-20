@@ -10,12 +10,7 @@ public class RegCharSet extends RegexObject {
 	private Set<String> set;
 
 	public RegCharSet(ParsingObject po) {
-		this(po, null);
-		this.addQuantifier(po);
-	}
-
-	public RegCharSet(ParsingObject po, RegexObject parent) {
-		super(po, parent);
+		super(po);
 		set = new LinkedHashSet<String>();
 		setCharSet(po.get(1).getText());
 	}

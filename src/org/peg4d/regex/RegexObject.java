@@ -7,21 +7,19 @@ import org.peg4d.ParsingObject;
 
 public abstract class RegexObject {
 
-	protected boolean writePegMode = false;
+	protected boolean writePegMode;
 	protected List<RegexObject> list;
 	protected ParsingObject ref;
 	protected Quantifier quantifier;
 	protected RegexObject parent;
+	protected boolean refer;
 	public boolean beginWith;
 	public boolean endWith;
 	public boolean not;
 
 	public RegexObject(ParsingObject po) {
-		this(po, null);
-	}
-
-	public RegexObject(ParsingObject po, RegexObject parent) {
-		this.parent = parent;
+		this.writePegMode = false;
+		this.refer = false;
 		this.beginWith = false;
 		this.endWith = false;
 		this.not = false;
@@ -42,12 +40,11 @@ public abstract class RegexObject {
 			}
 	}
 
-	public Quantifier getQuantifier(){
-		return this.quantifier;
-	}
-
-	public void rmQuantifier(){
-		this.quantifier = null;
+	public void setWriteMode(boolean b){
+		this.writePegMode = b;
+		for(RegexObject r: list){
+			r.setWriteMode(b);
+		}
 	}
 
 	public void add(RegexObject e) {
@@ -66,18 +63,6 @@ public abstract class RegexObject {
 		return this.list.size();
 	}
 
-	public ParsingObject getRef(){
-		return this.ref;
-	}
-
-	public String getTag(){
-		return this.quantifier.getLabel();
-	}
-
-	private boolean is(ParsingObject parsingObject, String string) {
-		return parsingObject.getTag().toString().equals(string);
-	}
-
 	private RegexObject pop() {
 		return this.list.remove(this.list.size() - 1);
 	}
@@ -88,6 +73,42 @@ public abstract class RegexObject {
 
 	public void pushHead(RegexObject that) {
 		this.list.add(0, that);
+	}
+
+	public ParsingObject getRef(){
+		return this.ref;
+	}
+
+	public Quantifier getQuantifier(){
+		return this.quantifier;
+	}
+
+	public void rmQuantifier(){
+		this.quantifier = null;
+	}
+
+	public String getTag(){
+		return this.quantifier.getLabel();
+	}
+
+	public RegexObject getParent(){
+		return this.parent;
+	}
+
+	public void setParent(RegexObject r){
+		this.parent = r;
+	}
+
+	public boolean getRefer(){
+		return this.refer;
+	}
+
+	public void setRefer(boolean b){
+		this.refer = b;
+	}
+
+	private boolean is(ParsingObject parsingObject, String string) {
+		return parsingObject.getTag().toString().equals(string);
 	}
 
 	public RegexObject popContinuation() {
@@ -106,13 +127,6 @@ public abstract class RegexObject {
 			}
 		} else {
 			this.add(ro);
-		}
-	}
-
-	public void setWriteMode(boolean b){
-		this.writePegMode = b;
-		for(RegexObject r: list){
-			r.setWriteMode(b);
 		}
 	}
 

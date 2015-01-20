@@ -72,6 +72,7 @@ public class RegexObjectConverter {
 			case "Block":
 				RegNonTerminal rnBlock = new RegNonTerminal(createBlockId());
 				RegSeq rsBlock = createSequence(e.get(1));
+				rsBlock.setParent(rnBlock);
 				rnBlock.addQuantifier(e);
 				rnBlock.setDefName();
 				this.rules.put(rnBlock.toString(), rsBlock);
@@ -90,6 +91,7 @@ public class RegexObjectConverter {
 					RegNonTerminal rnBRefer = new RegNonTerminal(ntName);
 					rnBRefer.addQuantifier(e);
 					rnBRefer.setIsa();
+					roBRefer.getParent().setRefer(true);
 					return rnBRefer;
 				}
 				else {
