@@ -73,15 +73,15 @@ public class RegexObjectConverter {
 				RegNonTerminal rnBlock = new RegNonTerminal(createBlockId());
 				RegSeq rsBlock = createSequence(e.get(1));
 				rsBlock.setParent(rnBlock);
-				rnBlock.addQuantifier(e);
 				rnBlock.setDefName();
 				this.rules.put(rnBlock.toString(), rsBlock);
+				rnBlock.addQuantifier(e);
 				return rnBlock;
 			case "Group":
 				RegNonTerminal rnGroup = new RegNonTerminal(createGroupId());
 				RegSeq rsGroup = createSequence(e.get(1));
-				rnGroup.addQuantifier(e);
 				this.rules.put(rnGroup.toString(), rsGroup);
+				rnGroup.addQuantifier(e);
 				return rnGroup;
 			case "BlockReference":
 				int refId = Integer.parseInt(e.get(1).get(0).getText());
@@ -132,7 +132,7 @@ public class RegexObjectConverter {
 				if(!(continuation instanceof RegSeq)){
 					return pi(child, continuation);
 				}
-				else if(((RegSeq) child).contains(continuation)){
+				else if(((RegSeq) child).contains(continuation) && child.not == continuation.not ){
 					if(child.getQuantifier() != null && !"Times".equals(child.getTag())){
 						continuation.pushHead(child);
 						continuation = continuationBasedConversion((RegSeq) child, continuation);
@@ -155,7 +155,7 @@ public class RegexObjectConverter {
 			else if(child instanceof RegCharSet && continuation.size() > 0){
 				RegexObject rHead = continuation.get(0);
 				RegCharSet charSet = (RegCharSet)child;
-				if(rHead instanceof RegCharSet && charSet.contains(rHead)){
+				if(rHead instanceof RegCharSet && rHead.not == charSet.not && charSet.contains(rHead)){
 					if(charSet.getQuantifier() != null && !"Times".equals(charSet.getTag())){
 						return continuationBasedConversion(charSet, continuation);
 					}

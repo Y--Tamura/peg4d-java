@@ -23,6 +23,7 @@ public abstract class RegexObject {
 		this.not = false;
 		this.ref = po;
 		this.quantifier = null;
+		this.parent = null;
 		this.list = new ArrayList<RegexObject>();
 	}
 

@@ -86,6 +86,7 @@ public class RegCharSet extends RegexObject {
 			sb.append("(");
 		}
 		if(this.not == true){
+			if(this.quantifier != null) sb.append("( ");
 			sb.append("!");
 		}
 		if(arr.length == 1){
@@ -104,11 +105,12 @@ public class RegCharSet extends RegexObject {
 			}
 			sb.append(")");
 		}
-		if(this.quantifier != null) {
-			sb.append(this.quantifier.toString());
-		}
 		if(this.not == true){
 			sb.append(" .");
+			if(this.quantifier != null) sb.append(")");
+		}
+		if(this.quantifier != null) {
+			sb.append(this.quantifier.toString());
 		}
 		if(this.quantifier != null && this.quantifier.hasRepeat()){
 			if(arr.length > 1) sb.append(")");
