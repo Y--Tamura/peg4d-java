@@ -5,6 +5,8 @@ import org.peg4d.ParsingObject;
 
 public class RegSeq extends RegexObject {
 
+	private boolean refer = true;
+
 	public RegSeq() {
 		super(null);
 	}
@@ -30,6 +32,14 @@ public class RegSeq extends RegexObject {
 		}
 
 		return strThis.equals(strObj);
+	}
+
+	public boolean getRefer() {
+		return this.refer;
+	}
+
+	public void setNotRefer() {
+		this.refer = false;
 	}
 
 	@Override

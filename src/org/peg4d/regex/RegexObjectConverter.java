@@ -35,7 +35,12 @@ public class RegexObjectConverter {
 	}
 
 	private RegSeq createSequence(ParsingObject po) {
+		return createSequence(po, false);
+	}
+
+	private RegSeq createSequence(ParsingObject po, boolean group) {
 		RegSeq r = new RegSeq();
+		if(group) r.setNotRefer();
 		for(ParsingObject child: po) {
 			r.add(createRegexObject(child));
 		}
@@ -59,9 +64,13 @@ public class RegexObjectConverter {
 			case "EscapedChar":
 				return new RegCharSet(e);
 			case "Block":
-				RegSeq roBlock = createSequence(e.get(1));
+				RegSeq roBlock = createSequence(e.get(1), false);
 				roBlock.addQuantifier(e);
 				return roBlock;
+			case "Group":
+				RegSeq roGroup = createSequence(e.get(1), true);
+				roGroup.addQuantifier(e);
+				return roGroup;
 			default:
 				System.err.println("Sorry!! An error occurred on 'createRegexObject'.");
 				return null;
