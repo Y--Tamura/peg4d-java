@@ -49,6 +49,8 @@ public class Main {
 	private static String GrammarFile = null; // default
 	// -s, --string
 	private static String InputString = null;
+	// -r, --regex
+	private static String RegexFileName = null;
 	// -i, --input
 	private static String InputFileName = null;
 
@@ -77,7 +79,7 @@ public class Main {
 
 	// --jvm
 	public static boolean JavaByteCodeGeneration = false;
-	
+
 	// --pegvm
 	public static boolean PegVMByteCodeGeneration = false;
 
@@ -121,6 +123,10 @@ public class Main {
 			}
 			else if ((argument.equals("-s") || argument.equals("--string")) && (index < args.length)) {
 				InputString = args[index];
+				index = index + 1;
+			}
+			else if ((argument.equals("-r") || argument.equals("--regex")) && (index < args.length)) {
+				RegexFileName = args[index];
 				index = index + 1;
 			}
 			else if ((argument.equals("-i") || argument.equals("--input")) && (index < args.length)) {
@@ -217,7 +223,7 @@ public class Main {
 				GrammarFile = guessGrammarFile(InputFileName);
 			}
 		}
-		if(InputFileName == null && InputString == null && !PegVMByteCodeGeneration) {
+		if(InputFileName == null && InputString == null && RegexFileName == null && !PegVMByteCodeGeneration) {
 			System.out.println("unspecified inputs: invoking interactive shell");
 			Command = "shell";
 		}
@@ -251,7 +257,7 @@ public class Main {
 		System.out.println("  check        Parse -i input or -s string");
 		System.out.println("  shell        Try parsing in an interactive way");
 		System.out.println("  rel          Convert -f file to relations (csv file)");
-		System.out.println("  nezex        Convert -i regex to peg");
+		System.out.println("  nezex        Convert -r regex to -o output(peg file), Parse -i input");
 		System.out.println("  conv         Convert PEG4d rules to the specified format in -o");
 		System.out.println("  find         Search nonterminals that can match inputs");
 		Main._Exit(0, Message);
@@ -392,7 +398,7 @@ public class Main {
 			ParsingWriter.writeAs(OutputWriterClass, OutputFileName, po);
 		}
 	}
-	
+
 	public static void conv() {
 		Grammar peg = newGrammar();
 		if (PegVMByteCodeGeneration) {
@@ -411,6 +417,10 @@ public class Main {
 	}
 
 	public static void nezex() {
+		String tmpFileName = InputFileName;
+		InputFileName = RegexFileName;
+		if(tmpFileName != null) OutputFileName = "nezex.p4d";
+		System.out.println("regex file: " + InputFileName);
 		Grammar peg = new GrammarFactory().newGrammar("main", "src/resource/regex.p4d");
 		Main.printVerbose("Grammar", peg.getName());
 		Main.printVerbose("StartingPoint", StartingPoint);
@@ -432,14 +442,23 @@ public class Main {
 			}
 		}
 
-		System.out.println("Parsed: " + pego);
+//		System.out.println("Parsed: " + pego);
 
 		Map<String, RegexObject> ro = new RegexObjectConverter(pego).convert();
 		RegexPegGenerator pegfile = new RegexPegGenerator(OutputFileName, ro);
 
-		System.out.println();
+		if(OutputFileName != null) System.out.println("PEG file has created. (" + OutputFileName + ")\n");
 		pegfile.writePeg();
 		pegfile.close();
+
+		if(tmpFileName != null){
+			GrammarFile = OutputFileName;
+			InputFileName = tmpFileName;
+			OutputFileName = null;
+			System.out.println("input file: " + InputFileName);
+			System.out.println("parsing...\n");
+			parse();
+		}
 
 		return;
 	}
