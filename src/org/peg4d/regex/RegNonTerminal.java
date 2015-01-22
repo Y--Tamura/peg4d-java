@@ -48,10 +48,12 @@ public class RegNonTerminal extends RegexObject {
 	public String toString() {
 		if(writePegMode){
 			if(isa){
-				return "<isa " + defName + ">";
+				if(this.quantifier == null) return "<def " + defName + " " + label + ">";
+				else return "<isa " + defName + ">" + this.quantifier.toString();
 			}
 			else if(refer){
-				return "<def " + defName + " " + label + ">";
+				if(this.quantifier == null) return "<def " + defName + " " + label + ">";
+				else return "<def " + defName + " " + label + ">" + this.quantifier.toString();
 			}else{
 				if(this.quantifier == null) return label;
 				else return label + this.quantifier.toString();
