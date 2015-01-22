@@ -51,6 +51,17 @@ public class RegCharSet extends RegexObject {
 					set.add(String.valueOf(j));
 				}
 				i += 3;
+			} else if("[:".equals(s.substring(i, next2))){
+				//class
+				int count = i + 3;
+				while(s.charAt(count) != ':') count++;
+				addClassChar(s.substring(i+2, count));
+				i += count;
+				++i;
+			} else if("\\u".equals(s.substring(i, next2))){
+				//unicode
+				set.add(s.substring(i, i+6));
+				i += 6;
 			} else if(s.charAt(i)=='\\'){
 				//escapedchar
 				set.add(s.substring(i, next2));
@@ -60,6 +71,12 @@ public class RegCharSet extends RegexObject {
 				++i;
 			}
 		} while(i < max);
+
+		// remove '\', add '\\'.
+		char c = 0x5c;
+		if(set.remove(String.valueOf(c))){
+			set.add("\\\\");
+		};
 	}
 
 //	private String unicodeToStr(String unicode){
@@ -68,6 +85,97 @@ public class RegCharSet extends RegexObject {
 //		String string = new String(codePoint, 0, 1);
 //		return string;
 //	}
+
+	private void addClassChar(String className){
+		char c;
+		switch(className){
+		case "ascii":
+		case "ASCII":
+			for(c = 0x00; c <= 0x7F; c++) {
+				set.add(String.valueOf(c));
+			}
+			break;
+		case "alnum":
+		case "Alnum":
+			for(c = '0'; c <= '9'; c++) {
+				set.add(String.valueOf(c));
+			}
+		case "alpha":
+		case "Alpha":
+			for(c = 'a'; c <= 'z'; c++) {
+				set.add(String.valueOf(c));
+			}
+			break;
+		case "blank":
+		case "Blank":
+//			char tab = 0x09;
+//			set.add(String.valueOf(tab));
+			set.add("\\t");
+			set.add(" ");
+			break;
+		case "cntrl":
+		case "Cntrl":
+			for(c = 0x00; c <= 0x1F; c++) {
+				set.add(String.valueOf(c));
+			}
+			c = 0x7E;
+			set.add(String.valueOf(c));
+			break;
+		case "digit":
+		case "Digit":
+			for(c = '0'; c <= '9'; c++) {
+				set.add(String.valueOf(c));
+			}
+			break;
+		case "glaph":
+		case "Graph":
+			for(c = 0x21; c <= 0x7E; c++) {
+				set.add(String.valueOf(c));
+			}
+			break;
+		case "lower":
+		case "Lower":
+			for(c = 'a'; c <= 'z'; c++) {
+				set.add(String.valueOf(c));
+			}
+			break;
+		case "print":
+		case "Print":
+			for(c = 0x20; c <= 0x7E; c++) {
+				set.add(String.valueOf(c));
+			}
+			break;
+		case "punct":
+		case "Punct":
+			for(c = 0x21; c <= 0x47; c++) {
+				set.add(String.valueOf(c));
+			}
+			for(c = 0x3A; c <= 0x40; c++) {
+				set.add(String.valueOf(c));
+			}
+			for(c = 0x5B; c <= 0x60; c++) {
+				set.add(String.valueOf(c));
+			}
+			for(c = 0x7B; c <= 0x7E; c++) {
+				set.add(String.valueOf(c));
+			}
+			break;
+		case "xdigit":
+		case "XDigit":
+			for(c = '0'; c <= '9'; c++) {
+				set.add(String.valueOf(c));
+			}
+			for(c = 'a'; c <= 'f'; c++) {
+				set.add(String.valueOf(c));
+			}
+			for(c = 'A'; c <= 'F'; c++) {
+				set.add(String.valueOf(c));
+			}
+			break;
+		default:
+			System.out.println("Unsupported class name(s) is(are) inputted.");
+		}
+	}
 
 	@Override
 	public String getLetter() {
