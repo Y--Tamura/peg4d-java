@@ -85,7 +85,7 @@ public class RegexObjectConverter {
 				return rnGroup;
 			case "BlockReference":
 				int refId = Integer.parseInt(e.get(1).get(0).getText());
-				String ntName = blockPrefix + refId;
+				String ntName = blockPrefix + String.format("%1$02d", refId);
 				RegexObject roBRefer = rules.get(ntName);
 				if(roBRefer != null && (roBRefer.getParent()) instanceof RegNonTerminal){
 					RegNonTerminal rnBRefer = new RegNonTerminal(ntName);
