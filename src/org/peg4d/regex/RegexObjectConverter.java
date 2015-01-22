@@ -21,18 +21,15 @@ public class RegexObjectConverter {
 	}
 
 	private String createRuleId() {
-		if(ruleId < 10) return rulePrefix + "0" + ruleId++;
-		return rulePrefix + ruleId++;
+		return rulePrefix + String.format("%1$02d", ruleId++);
 	}
 
 	private String createBlockId(){
-		if(blockId < 10) return blockPrefix + "0" + blockId++;
-		return blockPrefix + blockId++;
+		return blockPrefix + String.format("%1$02d", blockId++);
 	}
 
 	private String createGroupId(){
-		if(groupId < 10) return groupPrefix + "0" + groupId++;
-		return groupPrefix + groupId++;
+		return groupPrefix + String.format("%1$02d", groupId++);
 	}
 
 	public Map<String, RegexObject> convert() {
