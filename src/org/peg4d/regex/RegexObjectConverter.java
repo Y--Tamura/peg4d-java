@@ -21,15 +21,15 @@ public class RegexObjectConverter {
 	}
 
 	private String createRuleId() {
-		return rulePrefix + String.format("%1$02d", ruleId++);
+		return rulePrefix + ruleId++;
 	}
 
 	private String createBlockId(){
-		return blockPrefix + String.format("%1$02d", blockId++);
+		return blockPrefix + blockId++;
 	}
 
 	private String createGroupId(){
-		return groupPrefix + String.format("%1$02d", groupId++);
+		return groupPrefix + groupId++;
 	}
 
 	public Map<String, RegexObject> convert() {
@@ -85,7 +85,7 @@ public class RegexObjectConverter {
 				return rnGroup;
 			case "BlockReference":
 				int refId = Integer.parseInt(e.get(1).get(0).getText());
-				String ntName = blockPrefix + String.format("%1$02d", refId);
+				String ntName = blockPrefix + refId;
 				RegexObject roBRefer = rules.get(ntName);
 				if(roBRefer != null && (roBRefer.getParent()) instanceof RegNonTerminal){
 					RegNonTerminal rnBRefer = new RegNonTerminal(ntName);
