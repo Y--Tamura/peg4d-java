@@ -48,7 +48,7 @@ public class RegNonTerminal extends RegexObject {
 	public String toString() {
 		if(writePegMode){
 			if(isa){
-				if(this.quantifier == null) return "<def " + defName + " " + label + ">";
+				if(this.quantifier == null) return "<isa " + defName + " " + label + ">";
 				else return "<isa " + defName + ">" + this.quantifier.toString();
 			}
 			else if(refer){
