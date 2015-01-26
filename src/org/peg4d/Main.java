@@ -417,6 +417,8 @@ public class Main {
 	}
 
 	public static void nezex() {
+//		long start_n = System.nanoTime();
+		long start_m = System.currentTimeMillis();
 		String tmpFileName = InputFileName;
 		InputFileName = RegexFileName;
 		if(tmpFileName != null) OutputFileName = "nezex.p4d";
@@ -459,6 +461,10 @@ public class Main {
 			System.out.println("parsing...\n");
 			parse();
 		}
+//		long end_n = System.nanoTime();
+		long end_m = System.currentTimeMillis();
+//		System.out.println("Time: " + (end_n - start_n)/1000 + " [\u00B5s]");
+		System.out.println("Time: " + (end_m - start_m) + " [ms]");
 
 		return;
 	}
