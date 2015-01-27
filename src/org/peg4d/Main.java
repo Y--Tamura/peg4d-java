@@ -452,6 +452,8 @@ public class Main {
 		if(OutputFileName != null) System.out.println("PEG file has created. (" + OutputFileName + ")\n");
 		pegfile.writePeg();
 		pegfile.close();
+//		long mid_n = System.nanoTime();
+		long mid_m = System.currentTimeMillis();
 
 		if(tmpFileName != null){
 			GrammarFile = OutputFileName;
@@ -460,11 +462,17 @@ public class Main {
 			System.out.println("input file: " + InputFileName);
 			System.out.println("parsing...\n");
 			parse();
+		}else{
+			System.out.println();
 		}
 //		long end_n = System.nanoTime();
 		long end_m = System.currentTimeMillis();
-//		System.out.println("Time: " + (end_n - start_n)/1000 + " [\u00B5s]");
-		System.out.println("Time: " + (end_m - start_m) + " [ms]");
+//		System.out.println("NEZEXTime: " + (mid_n - start_n)/1000 + " [\u00B5s]");
+		System.out.println("NEZEXTime: " + (mid_m - start_m) + " [ms]");
+//		System.out.println("ParseTime: " + (end_n - mid_n)/1000 + " [\u00B5s]");
+		System.out.println("ParseTime: " + (end_m - mid_m) + " [ms]");
+//		System.out.println("  AllTime: " + (end_n - start_n)/1000 + " [\u00B5s]");
+		System.out.println("  AllTime: " + (end_m - start_m) + " [ms]");
 
 		return;
 	}
