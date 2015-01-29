@@ -180,7 +180,7 @@ public class RegCharSet extends RegexObject {
 	@Override
 	public String getLetter() {
 		StringBuilder sb = new StringBuilder();
-		for(RegexObject e: list) {
+		for(Object e: this.set.toArray()) {
 			sb.append(e.toString());
 		}
 		return sb.toString();

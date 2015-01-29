@@ -15,21 +15,18 @@ public class RegSeq extends RegexObject {
 	}
 
 	public boolean contains(RegexObject obj){
-		String strThis = new String();
-		String strObj = new String();
-		String tmp = new String();
+		StringBuilder sbThis = new StringBuilder();
+		StringBuilder sbObj = new StringBuilder();
 
 		for(RegexObject e: this.list){
-			tmp = e.getLetter();
-			strThis += tmp;
+			sbThis.append(e.getLetter());
 		}
 
 		for(RegexObject e: obj.getList()){
-			tmp = e.getLetter();
-			strObj += tmp;
+			sbObj.append(e.getLetter());
 		}
 
-		return strThis.equals(strObj);
+		return sbThis.toString().equals(sbObj.toString());
 	}
 
 	@Override
