@@ -12,6 +12,7 @@ public abstract class RegexObject {
 	protected ParsingObject ref;
 	protected Quantifier quantifier;
 	protected RegexObject parent;
+	protected RegexObject child;
 	public boolean beginWith;
 	public boolean endWith;
 	public boolean not;
@@ -24,6 +25,7 @@ public abstract class RegexObject {
 		this.ref = po;
 		this.quantifier = null;
 		this.parent = null;
+		this.child = null;
 		this.list = new ArrayList<RegexObject>();
 	}
 
@@ -62,7 +64,7 @@ public abstract class RegexObject {
 		return this.list.size();
 	}
 
-	private RegexObject pop() {
+	public RegexObject pop() {
 		return this.list.remove(this.list.size() - 1);
 	}
 
@@ -74,12 +76,20 @@ public abstract class RegexObject {
 		this.list.add(0, that);
 	}
 
+	public void remove(int i){
+		this.list.remove(i);
+	}
+
 	public ParsingObject getRef(){
 		return this.ref;
 	}
 
 	public Quantifier getQuantifier(){
 		return this.quantifier;
+	}
+
+	public void setQuantifier(Quantifier q){
+		this.quantifier = q;
 	}
 
 	public void rmQuantifier(){
@@ -96,6 +106,14 @@ public abstract class RegexObject {
 
 	public void setParent(RegexObject r){
 		this.parent = r;
+	}
+
+	public RegexObject getChild(){
+		return this.child;
+	}
+
+	public void setChild(RegexObject r){
+		this.child = r;
 	}
 
 	private boolean is(ParsingObject parsingObject, String string) {

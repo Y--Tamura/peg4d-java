@@ -22,7 +22,10 @@ public class RegSeq extends RegexObject {
 			sbThis.append(e.getLetter());
 		}
 
-		for(RegexObject e: obj.getList()){
+		if(obj instanceof RegCharSet){
+			sbObj.append(obj.getLetter());
+		}
+		else for(RegexObject e: obj.getList()){
 			sbObj.append(e.getLetter());
 		}
 

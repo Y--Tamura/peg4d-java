@@ -41,7 +41,8 @@ public class RegNonTerminal extends RegexObject {
 
 	@Override
 	public String getLetter() {
-		return "";
+		if(this.child != null) return this.child.getLetter();
+		else return "";
 	}
 
 	@Override
