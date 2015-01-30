@@ -236,7 +236,8 @@ public class RegCharSet extends RegexObject {
 				b = b || this.set.contains(e);
 			}
 			return b;
+		}else{
+			return this.getLetter().equals(obj.get(0).getLetter());
 		}
-		return false;
 	}
 }
