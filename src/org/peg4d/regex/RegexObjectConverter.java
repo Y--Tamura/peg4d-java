@@ -119,33 +119,40 @@ public class RegexObjectConverter {
 			RegexObject child = target.get(0);
 			if(child instanceof RegNonTerminal || continuation.get(0) instanceof RegNonTerminal){
 				if(child instanceof RegNonTerminal && continuation.get(0) instanceof RegNonTerminal){
-					if(child.getChild().not == continuation.get(0).getChild().not && ((RegSeq) child.getChild()).contains(continuation.get(0).getChild())){
+					if(child.getChild() != null && continuation.get(0).getChild() != null && child.getChild().not == continuation.get(0).getChild().not && ((RegSeq) child.getChild()).contains(continuation.get(0).getChild())){
 						if(child.getQuantifier() != null && !"Times".equals(child.getTag())){
 							// (a)*(a)
+							RegSeq sq = continuation.getContinuation();
 							continuation = continuationBasedConversion(child, continuation.get(0), continuation);
 							child.getChild().rmQuantifier();
-							return continuation;
+							sq.pushHead(continuation);
+							return sq;
 						}
 					}
 				}
 				else if(child instanceof RegNonTerminal){
-					if(continuation instanceof RegSeq && child.getChild().not == continuation.not && ((RegSeq) child.getChild()).contains(continuation)){
+					if(child.getChild() != null && continuation instanceof RegSeq && child.getChild().not == continuation.not && ((RegSeq) child.getChild()).contains(continuation)){
 						if(child.getQuantifier() != null && !"Times".equals(child.getTag())){
 							//(a)*a
+//							RegSeq sq = continuation.getContinuation();
+//							sq.pushHead(continuation.get(0));
 							continuation.pushHead(child);
 							RegexObject tmp = continuation;
 							continuation = continuationBasedConversion(child, continuation, tmp);
+//							sq.pushHead(continuation);
 							return continuation;
 						}
 					}
 				}
 				else if(continuation.get(0) instanceof RegNonTerminal){
-					if(child instanceof RegCharSet && child.not == continuation.get(0).getChild().not && ((RegSeq) continuation.get(0).getChild()).contains(child)){
+					if(child instanceof RegCharSet && continuation.get(0).getChild() != null && child.not == continuation.get(0).getChild().not && ((RegCharSet) child).contains(continuation.get(0).getChild())){
 						if(child.getQuantifier() != null && !"Times".equals(child.getTag())){
 							//a*(a)
+							RegSeq sq = continuation.getContinuation();
 							continuation = continuationBasedConversion(child, continuation.get(0), continuation);
 							child.rmQuantifier();
-							return continuation;
+							sq.pushHead(continuation);
+							return sq;
 							}
 					}
 				}

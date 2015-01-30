@@ -68,6 +68,10 @@ public abstract class RegexObject {
 		return this.list.remove(this.list.size() - 1);
 	}
 
+	public void push(RegexObject that) {
+		this.list.add(that);
+	}
+
 	public RegexObject popHead() {
 		return this.list.remove(0);
 	}
@@ -126,6 +130,15 @@ public abstract class RegexObject {
 			return rs;
 		}
 		rs.add(this.pop());
+		return rs;
+	}
+
+	public RegSeq getContinuation() {
+		RegSeq rs = new RegSeq();
+		for(RegexObject e: this.list){
+			rs.push(e);
+		}
+		if(rs.size() > 0) rs.popHead();
 		return rs;
 	}
 
