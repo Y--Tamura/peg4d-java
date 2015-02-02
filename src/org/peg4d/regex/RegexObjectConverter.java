@@ -117,7 +117,7 @@ public class RegexObjectConverter {
 		}
 		else if(target_size == 1) {
 			RegexObject child = target.get(0);
-			if(child instanceof RegNonTerminal || continuation.get(0) instanceof RegNonTerminal){
+			if(child instanceof RegNonTerminal || ( continuation.size() > 0 && continuation.get(0) instanceof RegNonTerminal)){
 				if(child instanceof RegNonTerminal && continuation.get(0) instanceof RegNonTerminal){
 					if(child.getChild() != null && continuation.get(0).getChild() != null && child.getChild().not == continuation.get(0).getChild().not && ((RegSeq) child.getChild()).contains(continuation.get(0).getChild())){
 						if(child.getQuantifier() != null && !"Times".equals(child.getTag())){
@@ -144,7 +144,7 @@ public class RegexObjectConverter {
 						}
 					}
 				}
-				else if(continuation.get(0) instanceof RegNonTerminal){
+				else if( continuation.size() > 0 && continuation.get(0) instanceof RegNonTerminal){
 					if(child instanceof RegCharSet && continuation.get(0).getChild() != null && child.not == continuation.get(0).getChild().not && ((RegCharSet) child).contains(continuation.get(0).getChild())){
 						if(child.getQuantifier() != null && !"Times".equals(child.getTag())){
 							//a*(a)
