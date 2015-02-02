@@ -38,7 +38,7 @@ EscapeLetter
 	= { UNICODE #Unicode }
 	/ { ASCII #ASCII }
 	/ { ESCAPE METACHARACTER #Symbol }
-	/ { ESCAPE ('p' / 'P') '{' _ ('In' / 'Is')? ( @{CLASSNAME #ClassName} / @{UNICODECLASSNAME #UnicodeClassName} ) _ '}' #Class }	//Perl
+//	/ { ESCAPE ('p' / 'P') '{' _ ('In' / 'Is')? ( @{CLASSNAME #ClassName} / @{UNICODECLASSNAME #UnicodeClassName} ) _ '}' #Class }	//Perl
 	/ { ESCAPE METALETTER #Letter }
 
 W
@@ -163,7 +163,7 @@ CLASSNAME
 
 // Unicode 7.0.0
 // http://www.unicode.org/Public/UNIDATA/Blocks.txt
-UNICODECLASSNAME
+/* UNICODECLASSNAME
 	= ('Basic' / 'basic') _ ('Latin' / 'latin')
 	/ ('Latin' / 'latin') _ '-'? _ '1' _ ('Supplement' / 'supplement')
 	/ ('Latin' / 'latin') _ ('Extended' / 'extended') _ '-'? _ ('A' / 'a')
@@ -416,3 +416,4 @@ UNICODECLASSNAME
 	/ ('Variation' / 'variation') _ ('Selectors' / 'selectors') _ ('Supplement' / 'supplement')
 	/ ('Supplementary' / 'supplementary') _ ('Private' / 'private') _ ('Use' / 'use') _ ('Area' / 'area') _ '-'? _ ('A' / 'a')
 	/ ('Supplementary' / 'supplementary') _ ('Private' / 'private') _ ('Use' / 'use') _ ('Area' / 'area') _ '-'? _ ('B' / 'b')
+ */
