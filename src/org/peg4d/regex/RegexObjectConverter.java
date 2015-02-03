@@ -1,5 +1,6 @@
 package org.peg4d.regex;
 
+import java.util.ArrayList;
 import java.util.TreeMap;
 import java.util.Map;
 
@@ -39,6 +40,7 @@ public class RegexObjectConverter {
 		for(ParsingObject e: tokens) {
 			rs.add(createRegexObject(e));
 		}
+		rs.pushRegNull();
 		RegexObject continuation = rs.popContinuation();
 		RegexObject top = pi(rs, continuation);
 		rules.put("TopLevel", top);
@@ -57,8 +59,7 @@ public class RegexObjectConverter {
 		switch(e.getTag().toString()){
 		case "Or":
 			RegChoice roOr = new RegChoice();
-			roOr.add(createSequence(e.get(0)));
-			roOr.add(createSequence(e.get(1)));
+			createOrSequence(roOr, e);
 			return roOr;
 		case "Item":
 			return createSequence(e.get(0));
@@ -109,16 +110,52 @@ public class RegexObjectConverter {
 		}
 	}
 
+	private void createOrSequence(RegChoice roOr, ParsingObject e) {
+		if(e.get(0).getTag().toString().equals("Or")){
+			createOrSequence(roOr, e.get(0));
+		}else{
+			roOr.add(createSequence(e.get(0)));
+		}
+		if(e.get(1).getTag().toString().equals("Or")){
+			createOrSequence(roOr, e.get(1));
+		}else{
+			roOr.add(createSequence(e.get(1)));
+		}
+	}
+
 	private RegexObject pi(RegexObject target, RegexObject continuation) {
 		int target_size = target.size();
 		if(target_size == 0) {
 			//(1)
 			return continuation;
 		}
-		else if(target_size == 1) {
+		if(target_size == 1) {
 			RegexObject child = target.get(0);
-			if(child instanceof RegNonTerminal || ( continuation.size() > 0 && continuation.get(0) instanceof RegNonTerminal)){
-				if(child instanceof RegNonTerminal && continuation.get(0) instanceof RegNonTerminal){
+			if( child instanceof RegNonTerminal && child.getChild() != null && child.getChild() instanceof RegSeq && child.getChild().get(0) instanceof RegChoice ) {
+				//(4)
+				//(a|b)c -> pi(a, c) / pi(b, c)
+				RegChoice targetRC = (RegChoice)child.getChild().get(0);
+				ArrayList<RegexObject> rcList = new ArrayList<RegexObject>();
+				for(RegexObject r: targetRC.getList()){
+					sortChoice(rcList, r);
+				}
+				RegChoice newRC = new RegChoice();
+				RegexObject[] rcArray = rcList.toArray(new RegexObject[rcList.size()]);
+				for(RegexObject r: rcArray){
+					RegSeq tmp = new RegSeq();
+					tmp.add(r);
+					tmp.add(continuation);
+					newRC.pushHead(tmp);
+				}
+//				if(continuation instanceof RegSeq && continuation.get(0) instanceof RegNonTerminal && continuation.get(0).getChild() != null && continuation.get(0).getChild() instanceof RegSeq && continuation.get(0).getChild().get(0) instanceof RegChoice ){
+//					continuation = pi(continuation.get(0), new RegNull());
+//				}
+				child.setChild(newRC);
+				rules.put(child.toString(), newRC);
+				return child;
+			}
+			else if(child instanceof RegNonTerminal || ( continuation.size() > 0 && continuation.get(0) instanceof RegNonTerminal)){
+				if(child instanceof RegNonTerminal && continuation.size() > 0 && continuation.get(0) instanceof RegNonTerminal){
 					if(child.getChild() != null && continuation.get(0).getChild() != null && child.getChild().not == continuation.get(0).getChild().not && ((RegSeq) child.getChild()).contains(continuation.get(0).getChild())){
 						if(child.getQuantifier() != null && !"Times".equals(child.getTag())){
 							// (a)*(a)
@@ -166,14 +203,20 @@ public class RegexObjectConverter {
 			else if(child instanceof RegChoice) {
 				//(4)
 				//(a|b)c -> pi(a, c) / pi(b, c)
-				//FIXME
-				RegexObject r1 = child.get(0);
-				RegexObject r2 = child.get(1);
-				RegChoice r = new RegChoice();
-				r.quantifier = target.quantifier; //(a|b)*
-				r.add(pi(r1, continuation));
-				r.add(pi(r2, continuation));
-				return r;
+				RegChoice targetRC = (RegChoice)child;
+				ArrayList<RegexObject> rcList = new ArrayList<RegexObject>();
+				for(RegexObject r: targetRC.getList()){
+					sortChoice(rcList, r);
+				}
+				RegChoice newRC = new RegChoice();
+				RegexObject[] rcArray = rcList.toArray(new RegexObject[rcList.size()]);
+				for(RegexObject r: rcArray){
+					RegSeq tmp = new RegSeq();
+					tmp.add(r);
+					tmp.add(continuation);
+					newRC.pushHead(tmp);
+				}
+				return newRC;
 			}
 			else if(child instanceof RegSeq) {
 				//pi((ab), c) -> pi(ab, c)
@@ -230,6 +273,24 @@ public class RegexObjectConverter {
 			//(3)
 			RegexObject c2 = target.popContinuation();
 			return pi(target, pi(c2, continuation));
+		}
+	}
+
+	private void sortChoice(ArrayList<RegexObject> list, RegexObject ro) {
+		if(list.size() == 0){
+			list.add(ro);
+		}else{
+			if(ro.getLetter().length() <= list.get(0).getLetter().length()){
+				list.add(0, ro);
+			}else if(ro.getLetter().length() > list.get(list.size() -1).getLetter().length()){
+				list.add(ro);
+			}else{
+				int i;
+				for(i = 0; i < list.size() -1; i++){
+					if(ro.getLetter().length() == list.get(i).getLetter().length()) break;
+				}
+				list.add(i, ro);
+			}
 		}
 	}
 

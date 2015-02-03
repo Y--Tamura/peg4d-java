@@ -49,7 +49,7 @@ public abstract class RegexObject {
 	}
 
 	public void add(RegexObject e) {
-		this.list.add(e);
+		if(!(e instanceof RegNull)) this.list.add(e);
 	}
 
 	public RegexObject get(int i) {
@@ -69,7 +69,11 @@ public abstract class RegexObject {
 	}
 
 	public void push(RegexObject that) {
-		this.list.add(that);
+		if(!(that instanceof RegNull)) this.list.add(that);
+	}
+
+	public void pushRegNull() {
+		this.list.add(new RegNull());
 	}
 
 	public RegexObject popHead() {
@@ -77,7 +81,7 @@ public abstract class RegexObject {
 	}
 
 	public void pushHead(RegexObject that) {
-		this.list.add(0, that);
+		if(!(that instanceof RegNull)) this.list.add(0, that);
 	}
 
 	public void remove(int i){
