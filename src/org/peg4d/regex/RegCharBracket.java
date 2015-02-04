@@ -8,24 +8,19 @@ public class RegCharBracket extends RegCharSet {
 
 	public RegCharBracket(ParsingObject po) {
 		super(po);
-		set = new LinkedHashSet<Object>();
+		set = new LinkedHashSet<String>();
 		setCharBracket(po.get(1).getText());
 		this.addQuantifier(po);
 	}
 
 	private void setCharBracket(String s){
-		int i = 0;
-		char[] c = s.toCharArray();
-		char token = c[0];
-		if( token == '[' ){
-			token = c[i];
-			i++;
+		int i = 1;
 			do {
 				//bracket expression
-				//			Set<String> oneof = new LinkedHashSet<String>();
+//				Set<String> oneof = new LinkedHashSet<String>();
 				int next = i + 1;
 				int next2 = i + 2;
-				if(i == 1 && s.charAt(i)=='^'){
+				if(s.charAt(i)=='^'){
 					//exceptfor
 					this.not = true;
 					i++;
@@ -43,7 +38,7 @@ public class RegCharBracket extends RegCharSet {
 					while(s.charAt(count) != ':') count++;
 					addClassChar(s.substring(i+2, count));
 					i += count;
-					++i;
+					i++;
 				} else if(next2 < s.length() && "\\u".equals(s.substring(i, next2))){
 					//unicode
 					set.add(s.substring(i, i+6));
@@ -53,11 +48,10 @@ public class RegCharBracket extends RegCharSet {
 					set.add(s.substring(i, next2));
 					i += 2;
 				} else {
-					set.add(s.substring(i, next));
-					++i;
+					set.add(String.valueOf(s.charAt(i)));
+					i++;
 				}
-			} while(s.charAt(i) != ']');
-		}
+			} while(i < s.length() - 1);
 	}
 
 	private void addClassChar(String className){

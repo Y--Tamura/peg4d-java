@@ -7,11 +7,11 @@ import org.peg4d.ParsingObject;
 
 public class RegCharSet extends RegexObject {
 
-	protected Set<Object> set;
+	protected Set<String> set;
 
 	public RegCharSet(ParsingObject po) {
 		super(po);
-		set = new LinkedHashSet<Object>();
+		set = new LinkedHashSet<String>();
 		setCharSet(po.get(1).getText());
 		this.addQuantifier(po);
 	}
