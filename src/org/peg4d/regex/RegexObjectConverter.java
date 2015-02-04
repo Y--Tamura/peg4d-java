@@ -66,10 +66,11 @@ public class RegexObjectConverter {
 		default: {
 			switch(e.get(1).getTag().toString()) {
 			case "Char":
-			case "OneOf":
-			case "ExceptFor":
 			case "EscapedChar":
 				return new RegCharSet(e);
+			case "OneOf":
+			case "ExceptFor":
+				return new RegCharBracket(e);
 			case "Block":
 				RegNonTerminal rnBlock = new RegNonTerminal(createBlockId());
 				RegSeq rsBlock = createSequence(e.get(1));
