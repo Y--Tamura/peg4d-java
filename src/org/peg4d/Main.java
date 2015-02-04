@@ -444,7 +444,7 @@ public class Main {
 			}
 		}
 
-//		System.out.println("Parsed: " + pego);
+//		System.out.println("Parsed: " + pego + "\n");
 //		long regparse_n = System.nanoTime();
 		long regparse_m = System.currentTimeMillis();
 		Map<String, RegexObject> ro = new RegexObjectConverter(pego).convert();
