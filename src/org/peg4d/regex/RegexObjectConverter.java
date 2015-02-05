@@ -68,6 +68,8 @@ public class RegexObjectConverter {
 			case "Char":
 			case "EscapedChar":
 				return new RegCharSet(e);
+			case "WildCard":
+				return new RegCharAny(e);
 			case "OneOf":
 			case "ExceptFor":
 				return new RegCharBracket(e);
@@ -161,7 +163,7 @@ public class RegexObjectConverter {
 						if(child.getQuantifier() != null && !"Times".equals(child.getTag())){
 							// (a)*(a)
 							RegSeq sq = continuation.getContinuation();
-							continuation = continuationBasedConversion(child, continuation.get(0), continuation);
+							continuation = continuationBasedConversionNT(child, continuation.get(0), continuation);
 							child.getChild().rmQuantifier();
 							sq.pushHead(continuation);
 							return sq;
@@ -176,7 +178,7 @@ public class RegexObjectConverter {
 //							sq.pushHead(continuation.get(0));
 							continuation.pushHead(child);
 							RegexObject tmp = continuation;
-							continuation = continuationBasedConversion(child, continuation, tmp);
+							continuation = continuationBasedConversionNT(child, continuation, tmp);
 //							sq.pushHead(continuation);
 							return continuation;
 						}
@@ -187,7 +189,7 @@ public class RegexObjectConverter {
 						if(child.getQuantifier() != null && !"Times".equals(child.getTag())){
 							//a*(a)
 							RegSeq sq = continuation.getContinuation();
-							continuation = continuationBasedConversion(child, continuation.get(0), continuation);
+							continuation = continuationBasedConversionNT(child, continuation.get(0), continuation);
 							child.rmQuantifier();
 							sq.pushHead(continuation);
 							return sq;
@@ -248,9 +250,10 @@ public class RegexObjectConverter {
 			else if(child instanceof RegCharSet && continuation.size() > 0){
 				RegexObject rHead = continuation.get(0);
 				RegCharSet charSet = (RegCharSet)child;
-				if(rHead instanceof RegCharSet && rHead.not == charSet.not && charSet.contains(rHead)){
+//				if(rHead instanceof RegCharSet && rHead.not == charSet.not && charSet.contains(rHead)){
+				if(rHead instanceof RegCharSet && rHead.not == charSet.not && rHead.getLetter().startsWith(charSet.getLetter())){
 					if(charSet.getQuantifier() != null && !"Times".equals(charSet.getTag())){
-						return continuationBasedConversion(charSet, continuation);
+						return continuationBasedConversionCS(charSet, charSet, continuation);
 					}
 					else{
 						target.concat(continuation);
@@ -295,7 +298,7 @@ public class RegexObjectConverter {
 		}
 	}
 
-	private RegexObject continuationBasedConversion(RegexObject roLeft, RegexObject roMid ,RegexObject roRight){
+	private RegexObject continuationBasedConversionNT(RegexObject roLeft, RegexObject roMid ,RegexObject roRight){
 		RegNonTerminal nt = new RegNonTerminal(createRuleId());
 		RegexObject tmp;
 		switch(roLeft.getTag()){
@@ -393,35 +396,32 @@ public class RegexObjectConverter {
 		}
 	}
 
-	private RegexObject continuationBasedConversion(RegCharSet rcLeft, RegexObject roRight){
+	private RegexObject continuationBasedConversionCS(RegCharSet rcLeft, RegexObject roMid, RegexObject roRight){
 		RegCharSet rHeadChar = (RegCharSet)roRight.popHead();
 		RegNonTerminal nt = new RegNonTerminal(createRuleId());
-		switch(rcLeft.getTag()){
+		String tag = roMid.getTag();
+		roMid.rmQuantifier();
+		roRight.pushHead(nt);
+		switch(tag){
 		case "ZeroMoreL":	//a*a
-			roRight.pushHead(nt);
-			createNewLongestZeroMoreRule(rHeadChar, nt);
+			createNewLongestZeroMoreRule(roMid, rHeadChar, nt);
 			return roRight;
 		case "ZeroMoreS":	//a*?a
-			roRight.pushHead(nt);
-			createNewShortestZeroMoreRule(rHeadChar, nt);
+			createNewShortestZeroMoreRule(rHeadChar, roMid, nt);
 			return roRight;
 		case "OneMoreL":	//a+a
-			roRight.pushHead(nt);
-			createNewLongestZeroMoreRule(rHeadChar, nt);
-			roRight.pushHead(rHeadChar);
+			createNewLongestZeroMoreRule(roMid, rHeadChar, nt);
+			roRight.pushHead(roMid);
 			return roRight;
 		case "OneMoreS":	//a+?a
-			roRight.pushHead(nt);
-			createNewShortestZeroMoreRule(rHeadChar, nt);
-			roRight.pushHead(rHeadChar);
+			createNewShortestZeroMoreRule(roMid, rHeadChar, nt);
+			roRight.pushHead(roMid);
 			return roRight;
 		case "OptionalL":	//a?a
-			roRight.pushHead(nt);
-			createNewLongestOptionalRule(rHeadChar, nt);
+			createNewLongestOptionalRule(roMid, rHeadChar, nt);
 			return roRight;
 		case "OptionalS": 	//a??a
-			roRight.pushHead(nt);
-			createNewShortestOptionalRule(rHeadChar, nt);
+			createNewShortestOptionalRule(roMid, rHeadChar, nt);
 			return roRight;
 		default:
 			System.err.print("Sorry!! An error occurred on conversion(charset).");
