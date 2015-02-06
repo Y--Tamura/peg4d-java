@@ -131,8 +131,8 @@ Character
 	/ { '$' @{ ( DECDIGIT / '$' / '`' / '\'' ) #BlockNum } !DECDIGIT #BlockReference }
 	/ { ESCAPE 'g' @{ DECDIGIT #BlockNum } !DECDIGIT #BlockReference }						//Python
 	/ { '${' @{ ( DECDIGIT / '$' / '`' / '\'' ) #BlockNum } '}' #BlockReference }			//Perl
-	/ { LETTER+ #Char }
-	/ { (@EscapeLetter)+ #EscapedChar }
+	/ { LETTER #Char }
+	/ { @EscapeLetter #EscapedChar }
 	/ { '.' #WildCard }
 
 BracketCharacter
@@ -140,8 +140,8 @@ BracketCharacter
 	/ { '$' @{ ( DECDIGIT / '$' / '`' / '\'' ) #BlockNum } !DECDIGIT #BlockReference }
 	/ { ESCAPE 'g' @{ DECDIGIT #BlockNum } !DECDIGIT #BlockReference }						//Python
 	/ { '${' @{ ( DECDIGIT / '$' / '`' / '\'' ) #BlockNum } '}' #BlockReference }			//Perl
-	/ { LETTER+ #Char }
-	/ { (@EscapeLetter)+ #EscapedChar }
+	/ { LETTER #Char }
+	/ { @EscapeLetter #EscapedChar }
 	/ { !']' METACHARACTER #Char }
 	/ { '.' #Char }
 	/ { ' ' #Char }
