@@ -2,6 +2,7 @@ package org.peg4d.regex;
 
 import org.peg4d.ParsingObject;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -37,7 +38,8 @@ public class RegexObjectGenerator {
 		RegSeq regex = new RegSeq();
 		if("Regex".equals(token.getTag().toString())){
 			rules = new TreeMap<String, RegexObject>();
-			rules.put("TopLevel", generate(regex, token));
+			RegexObject ro = generate(regex, token);
+			rules.put("TopLevel", pi(ro, new RegNull()));
 			return rules;
 		}else{
 			System.err.println("The input file isn't a regex file.");
@@ -45,7 +47,7 @@ public class RegexObjectGenerator {
 		}
 	}
 
-	private RegexObject generate(RegSeq regex, ParsingObject po){
+	private RegSeq generate(RegSeq regex, ParsingObject po){
 		ParsingObject token;
 		for(int i = 0; i < po.size(); i++){
 			token = po.get(i);
@@ -122,22 +124,36 @@ public class RegexObjectGenerator {
 
 	private RegexObject createStmtObject(ParsingObject po){
 		RegexObject ro;
-
+		RegSeq stmt = new RegSeq();
 		switch(po.get(1).getTag().toString()){
 		case "Block":
 			ro = new RegNonTerminal(createBlockId());
-			ro.setChild(generate(new RegSeq(), po.get(1)));
-			ro.getChild().setParent(ro);
-			rules.put(ro.toString(), ro.getChild());
+			ro.setChild(generate(stmt, po.get(1)));
+			stmt.setParent(ro);
+			rules.put(ro.toString(), stmt);
 			break;
 		case "Group":
 			ro = new RegNonTerminal(createGroupId());
-			ro.setChild(generate(new RegSeq(), po.get(1)));
-			ro.getChild().setParent(ro);
-			rules.put(ro.toString(), ro.getChild());
+			ro.setChild(generate(stmt, po.get(1)));
+			stmt.setParent(ro);
+			rules.put(ro.toString(), stmt);
 			break;
 		case "Comment":
 			ro = new RegNull();
+			break;
+		case "LookBehind":
+		case "NegLookBehind":
+			//FIXME
+			ro = new RegNull();
+			break;
+		case "NegLookAhead":
+			stmt.not = true;
+		case "LookAhead":
+			stmt.look = true;
+			ro = new RegNonTerminal(createGroupId());
+			ro.setChild(generate(stmt, po.get(1)));
+			stmt.setParent(ro);
+			rules.put(ro.toString(), stmt);
 			break;
 		default:
 			ro = new RegNull();
@@ -153,5 +169,120 @@ public class RegexObjectGenerator {
 
 		ro.addQuantifier(po);
 		return ro;
+	}
+
+	private RegexObject pi(RegexObject e, RegexObject k){
+		RegexObject last = e.pop();
+		if(last == null){
+			return k;
+		}
+		if(last instanceof RegNonTerminal && !last.toString().startsWith(rulePrefix)){
+			if(last.getChild().get(0) instanceof RegChoice){
+				RegChoice target = (RegChoice)last.getChild().get(0);
+				ArrayList<RegexObject> rcList = new ArrayList<RegexObject>();
+				for(RegexObject r: target.getList()){
+					sortChoice(rcList, r);
+				}
+				RegChoice newRC = new RegChoice();
+				RegexObject[] rcArray = rcList.toArray(new RegexObject[rcList.size()]);
+				for(RegexObject r: rcArray){
+					RegSeq tmp = new RegSeq();
+					tmp.push(pi(r, k));
+					RegNonTerminal newRule = new RegNonTerminal(createRuleId());
+					newRule.setChild(tmp);
+					tmp.setParent(newRule);
+					newRC.push(newRule);
+					rules.put(newRule.toString(), tmp);
+				}
+				rules.remove(last.toString());
+				return pi(e, newRC);
+			}if(last.getChild() instanceof RegSeq){
+				rules.remove(last.toString());
+				RegSeq child = ((RegSeq) last.getChild());
+				if(child.size() == 0){
+					return pi(e, k);
+				}else if(child.size() == 1){
+					pi(e, pi(child.get(0), k));
+				}else{
+					RegexObject result;
+					RegexObject childLast = child.pop();
+					result = pi(child, childLast);
+					if(k instanceof RegSeq){
+
+						k.pushHead(result);
+						return pi(e, k);
+					}else{
+						RegSeq unit = new RegSeq();
+						unit.push(k);
+						unit.pushHead(result);
+						return pi(e, unit);
+					}
+				}
+			}
+		}else if(last instanceof RegChoice){
+			RegChoice target = (RegChoice)last;
+			ArrayList<RegexObject> rcList = new ArrayList<RegexObject>();
+			for(RegexObject r: target.getList()){
+				sortChoice(rcList, r);
+			}
+			RegChoice newRC = new RegChoice();
+			RegexObject[] rcArray = rcList.toArray(new RegexObject[rcList.size()]);
+			for(RegexObject r: rcArray){
+				RegSeq tmp = new RegSeq();
+				tmp.push(pi(r, k));
+				RegNonTerminal newRule = new RegNonTerminal(createRuleId());
+				newRule.setChild(tmp);
+				tmp.setParent(newRule);
+				newRC.push(newRule);
+				rules.put(newRule.toString(), tmp);
+			}
+			return pi(e, newRC);
+		}else if(last instanceof RegSeq){
+			if(last.size() == 0){
+				return pi(e, k);
+			}else if(last.size() == 1){
+				pi(e, pi(last.get(0), k));
+			}else{
+				RegexObject result;
+				RegexObject childLast = last.pop();
+				result = pi(last, childLast);
+				if(k instanceof RegSeq){
+					k.pushHead(result);
+					return pi(e, k);
+				}else{
+					RegSeq unit = new RegSeq();
+					unit.push(k);
+					unit.pushHead(result);
+					return pi(e, unit);
+				}
+			}
+		}
+		if(k instanceof RegSeq){
+			k.pushHead(last);
+			return pi(e, k);
+		}else{
+			RegSeq unit = new RegSeq();
+			unit.push(k);
+			unit.pushHead(last);
+			return pi(e, unit);
+		}
+	}
+
+	private void sortChoice(ArrayList<RegexObject> list, RegexObject ro) {
+		if(list.size() == 0){
+			list.add(ro);
+		}else{
+			if(ro.getLetter().length() <= list.get(0).getLetter().length()){
+				list.add(0, ro);
+			}else if(ro.getLetter().length() > list.get(list.size() -1).getLetter().length()){
+				list.add(ro);
+			}else{
+				int i;
+				for(i = 0; i < list.size() -1; i++){
+					if(ro.getLetter().length() == list.get(i).getLetter().length()) break;
+				}
+				list.add(i, ro);
+			}
+		}
 	}
 }

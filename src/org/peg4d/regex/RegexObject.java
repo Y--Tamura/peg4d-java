@@ -13,12 +13,14 @@ public abstract class RegexObject {
 	protected Quantifier quantifier;
 	protected RegexObject parent;
 	protected RegexObject child;
+	public boolean look;
 	public boolean beginWith;
 	public boolean endWith;
 	public boolean not;
 
 	public RegexObject(ParsingObject po) {
 		this.writePegMode = false;
+		this.look = false;
 		this.beginWith = false;
 		this.endWith = false;
 		this.not = false;
@@ -56,6 +58,10 @@ public abstract class RegexObject {
 		return this.list.get(i);
 	}
 
+	public void setList(int i, RegexObject e){
+		this.list.set(i, e);
+	}
+
 	public List<RegexObject> getList(){
 		return this.list;
 	}
@@ -65,7 +71,8 @@ public abstract class RegexObject {
 	}
 
 	public RegexObject pop() {
-		return this.list.remove(this.list.size() - 1);
+		if(this.size() > 0) return this.list.remove(this.list.size() - 1);
+		else return null;
 	}
 
 	public void push(RegexObject that) {
@@ -77,7 +84,8 @@ public abstract class RegexObject {
 	}
 
 	public RegexObject popHead() {
-		return this.list.remove(0);
+		if(this.size() > 0) return this.list.remove(0);
+		else return null;
 	}
 
 	public void pushHead(RegexObject that) {
@@ -129,10 +137,10 @@ public abstract class RegexObject {
 	}
 
 	public RegexObject popContinuation() {
-		RegSeq rs = new RegSeq();
 		if(this.size() < 1) {
-			return rs;
+			return new RegNull();
 		}
+		RegSeq rs = new RegSeq();
 		rs.add(this.pop());
 		return rs;
 	}
