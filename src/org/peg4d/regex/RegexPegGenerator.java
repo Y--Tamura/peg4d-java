@@ -23,7 +23,8 @@ public class RegexPegGenerator extends Generator {
 		writeHeader();
 		RegexObject r = rules.get("TopLevel");
 		r.setWriteMode(true);
-		write("TopLevel = { ");
+		writeLn("TopLevel");
+		write("    = { ");
 		this.write(r.toString());
 		writeLn(" #Matched }");
 		writeLn("");
@@ -33,19 +34,21 @@ public class RegexPegGenerator extends Generator {
 				continue;
 			}
 			writeLn(s.getKey());
-			write("    ");
-			write("= ");
+			write("    = ");
 			s.getValue().setWriteMode(true);
 			writeLn(s.getValue().toString());
 		}
 	}
 
 	private void writeHeader() {
-		writeLn("File  = { @TopLevel #Source } _");
+		writeLn("File");
+		writeLn("    = { @TopLevel #Source } _");
 		writeLn("");
-		writeLn("Chunk = TopLevel");
+		writeLn("Chunk");
+		writeLn("    = TopLevel");
 		writeLn("");
-		writeLn("_ = [ \\t\\r\\n]*");
-		writeLn("");
+		writeLn("_");
+		writeLn("    = [ \\t\\r\\n]*");
+		writeLn("\n");
 	}
 }

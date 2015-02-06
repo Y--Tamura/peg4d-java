@@ -13,7 +13,7 @@ import org.peg4d.writer.ParsingObjectWriter;
 import org.peg4d.writer.ParsingWriter;
 import org.peg4d.writer.TagWriter;
 import org.peg4d.regex.RegexObject;
-import org.peg4d.regex.RegexObjectConverter;
+import org.peg4d.regex.RegexObjectGenerator;
 import org.peg4d.regex.RegexPegGenerator;
 
 public class Main {
@@ -447,7 +447,7 @@ public class Main {
 		System.out.println("Parsed: " + pego + "\n");
 		long regparse_n = System.nanoTime();
 //		long regparse_m = System.currentTimeMillis();
-		Map<String, RegexObject> ro = new RegexObjectConverter(pego).convert();
+		Map<String, RegexObject> ro = new RegexObjectGenerator(pego).convert();
 		RegexPegGenerator pegfile = new RegexPegGenerator(OutputFileName, ro);
 		long nezex_n = System.nanoTime();
 //		long nezex_m = System.currentTimeMillis();

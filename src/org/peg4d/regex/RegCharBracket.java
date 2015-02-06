@@ -10,7 +10,6 @@ public class RegCharBracket extends RegCharSet {
 		super(po);
 		set = new LinkedHashSet<String>();
 		setCharBracket(po.get(1).getText());
-		this.addQuantifier(po);
 	}
 
 	private void setCharBracket(String s){

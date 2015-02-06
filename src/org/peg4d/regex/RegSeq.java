@@ -11,7 +11,6 @@ public class RegSeq extends RegexObject {
 
 	public RegSeq(ParsingObject po) {
 		super(po);
-		this.addQuantifier(po);
 	}
 
 	public boolean contains(RegexObject obj){
