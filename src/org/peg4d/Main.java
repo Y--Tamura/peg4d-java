@@ -443,7 +443,7 @@ public class Main {
 			}
 		}
 
-		System.out.println("Parsed: " + pego + "\n");
+//		System.out.println("Parsed: " + pego + "\n");
 		long regparse_n = System.nanoTime();
 		Map<String, RegexObject> ro = new RegexObjectGenerator(pego).convert();
 		RegexPegGenerator pegfile = new RegexPegGenerator(OutputFileName, ro);
