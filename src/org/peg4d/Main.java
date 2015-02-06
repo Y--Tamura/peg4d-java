@@ -418,7 +418,6 @@ public class Main {
 
 	public static void nezex() {
 		long start_n = System.nanoTime();
-//		long start_m = System.currentTimeMillis();
 		String tmpFileName = InputFileName;
 		InputFileName = RegexFileName;
 		if(tmpFileName != null) OutputFileName = "nezex.p4d";
@@ -446,18 +445,15 @@ public class Main {
 
 		System.out.println("Parsed: " + pego + "\n");
 		long regparse_n = System.nanoTime();
-//		long regparse_m = System.currentTimeMillis();
 		Map<String, RegexObject> ro = new RegexObjectGenerator(pego).convert();
 		RegexPegGenerator pegfile = new RegexPegGenerator(OutputFileName, ro);
 		long nezex_n = System.nanoTime();
-//		long nezex_m = System.currentTimeMillis();
 
 		if(OutputFileName != null) System.out.println("PEG file has created. (" + OutputFileName + ")\n");
 		pegfile.writePeg();
 		pegfile.close();
 
 		long inputparse_n = 0;
-//		long inputparse_m = 0;
 		if(tmpFileName != null){
 			GrammarFile = OutputFileName;
 			InputFileName = tmpFileName;
@@ -465,28 +461,21 @@ public class Main {
 			System.out.println("input file: " + InputFileName);
 			System.out.println("parsing...\n");
 			inputparse_n = System.nanoTime();
-//			inputparse_m = System.currentTimeMillis();
 			parse();
 		}else{
 			System.out.println();
 		}
 		long end_n = System.nanoTime();
-//		long end_m = System.currentTimeMillis();
+
 		System.out.println("regex_ParseTime: " + (regparse_n - start_n)/1000 + " [\u00B5s]");
-//		System.out.println("regex_ParseTime: " + (regparse_m - start_m) + " [ms]");
 		System.out.println("      NEZEXTime: " + (nezex_n - regparse_n)/1000 + " [\u00B5s]");
-//		System.out.println("      NEZEXTime: " + (nezex_m - regparse_m) + " [ms]");
 		if(tmpFileName != null){
 			System.out.println("   writepegTime: " + (inputparse_n - nezex_n)/1000 + " [\u00B5s]");
-//			System.out.println("   writepegTime: " + (inputparse_m - nezex_m) + " [ms]");
 			System.out.println("input_parseTime: " + (end_n - inputparse_n)/1000 + " [\u00B5s]");
-//			System.out.println("input_parseTime: " + (end_m - inputparse_m) + " [ms]");
 		}else{
 			System.out.println("   writepegTime: " + (end_n - nezex_n)/1000 + " [\u00B5s]");
-//			System.out.println("   writepegTime: " + (end_m - nezex_m) + " [ms]");
 		}
 		System.out.println("        AllTime: " + (end_n - start_n)/1000 + " [\u00B5s]");
-//		System.out.println("        AllTime: " + (end_m - start_m) + " [ms]");
 
 		return;
 	}
