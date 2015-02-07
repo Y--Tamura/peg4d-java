@@ -104,6 +104,7 @@ public class RegexObjectGenerator {
 				ro = new RegNonTerminal(blockPrefix + refId);
 				((RegNonTerminal) ro).setIsa();
 				((RegNonTerminal) refer.getParent()).setRefer(true);
+				((RegNonTerminal) refer.getParent()).setDefName();;
 			}
 			break;
 		default:
@@ -176,6 +177,18 @@ public class RegexObjectGenerator {
 		if(last == null){
 			return k;
 		}
+		if(last instanceof RegNonTerminal && (((RegNonTerminal) last).getIsa() || ((RegNonTerminal) last).getRefer())){
+			//FIXME
+			if(k instanceof RegSeq){
+				k.pushHead(last);
+				return pi(e, k);
+			}else{
+				RegSeq unit = new RegSeq();
+				unit.push(k);
+				unit.pushHead(last);
+				return pi(e, unit);
+			}
+		}
 		if(last instanceof RegNonTerminal && !last.toString().startsWith(rulePrefix)){
 			if(last.getChild().get(0) instanceof RegChoice){
 				RegChoice target = (RegChoice)last.getChild().get(0);
@@ -187,7 +200,8 @@ public class RegexObjectGenerator {
 				RegexObject[] rcArray = rcList.toArray(new RegexObject[rcList.size()]);
 				for(RegexObject r: rcArray){
 					RegSeq tmp = new RegSeq();
-					tmp.push(pi(r, k));
+					tmp.push(pi(r, new RegNull()));
+					tmp.push(k);
 					RegNonTerminal newRule = new RegNonTerminal(createRuleId());
 					newRule.setChild(tmp);
 					tmp.setParent(newRule);
@@ -196,28 +210,6 @@ public class RegexObjectGenerator {
 				}
 				rules.remove(last.toString());
 				return pi(e, newRC);
-			}if(last.getChild() instanceof RegSeq){
-				rules.remove(last.toString());
-				RegSeq child = ((RegSeq) last.getChild());
-				if(child.size() == 0){
-					return pi(e, k);
-				}else if(child.size() == 1){
-					pi(e, pi(child.get(0), k));
-				}else{
-					RegexObject result;
-					RegexObject childLast = child.pop();
-					result = pi(child, childLast);
-					if(k instanceof RegSeq){
-
-						k.pushHead(result);
-						return pi(e, k);
-					}else{
-						RegSeq unit = new RegSeq();
-						unit.push(k);
-						unit.pushHead(result);
-						return pi(e, unit);
-					}
-				}
 			}
 		}else if(last instanceof RegChoice){
 			RegChoice target = (RegChoice)last;
@@ -229,7 +221,8 @@ public class RegexObjectGenerator {
 			RegexObject[] rcArray = rcList.toArray(new RegexObject[rcList.size()]);
 			for(RegexObject r: rcArray){
 				RegSeq tmp = new RegSeq();
-				tmp.push(pi(r, k));
+				tmp.push(pi(r, new RegNull()));
+				tmp.push(k);
 				RegNonTerminal newRule = new RegNonTerminal(createRuleId());
 				newRule.setChild(tmp);
 				tmp.setParent(newRule);
@@ -237,25 +230,6 @@ public class RegexObjectGenerator {
 				rules.put(newRule.toString(), tmp);
 			}
 			return pi(e, newRC);
-		}else if(last instanceof RegSeq){
-			if(last.size() == 0){
-				return pi(e, k);
-			}else if(last.size() == 1){
-				pi(e, pi(last.get(0), k));
-			}else{
-				RegexObject result;
-				RegexObject childLast = last.pop();
-				result = pi(last, childLast);
-				if(k instanceof RegSeq){
-					k.pushHead(result);
-					return pi(e, k);
-				}else{
-					RegSeq unit = new RegSeq();
-					unit.push(k);
-					unit.pushHead(result);
-					return pi(e, unit);
-				}
-			}
 		}
 		if(k instanceof RegSeq){
 			k.pushHead(last);
