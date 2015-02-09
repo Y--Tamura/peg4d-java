@@ -198,25 +198,7 @@ public class RegexObjectGenerator {
 			}
 		}
 		if(last instanceof RegNonTerminal && !last.toString().startsWith(convertPrefix)){
-			 if(last.getChild() instanceof RegSeq){
-					RegSeq left = (RegSeq) last.getChild();
-					RegexObject converted = pi(left, new RegNull());
-					if(last.getQuantifier() != null){
-						converted.setQuantifier(last.getQuantifier());
-						last.rmQuantifier();
-					}
-					rules.remove(last.toString());
-					if(k instanceof RegSeq){
-						k.pushHead(converted);
-						return pi(e, k);
-					}else{
-						RegSeq unit = new RegSeq();
-						unit.push(k);
-						unit.pushHead(converted);
-						return pi(e, unit);
-					}
-				}
-			 else if(last.getChild().get(0) instanceof RegChoice){
+			 if(last.getChild().get(0) instanceof RegChoice){
 				RegChoice target = (RegChoice)last.getChild().get(0);
 				ArrayList<RegexObject> rcList = new ArrayList<RegexObject>();
 				for(RegexObject r: target.getList()){
@@ -244,8 +226,25 @@ public class RegexObjectGenerator {
 					}
 					rules.put(newRule.toString(), tmp);
 				}
-				rules.remove(target.toString());
+				rules.remove(last.toString());
 				return pi(e, newRC);
+			}else if(last.getChild() instanceof RegSeq){
+				RegSeq left = (RegSeq) last.getChild();
+				RegexObject converted = pi(left, new RegNull());
+				if(last.getQuantifier() != null){
+					converted.setQuantifier(last.getQuantifier());
+					last.rmQuantifier();
+				}
+				rules.remove(last.toString());
+				if(k instanceof RegSeq){
+					k.pushHead(converted);
+					return pi(e, k);
+				}else{
+					RegSeq unit = new RegSeq();
+					unit.push(k);
+					unit.pushHead(converted);
+					return pi(e, unit);
+				}
 			}
 		}else if(last instanceof RegChoice){
 			RegChoice target = (RegChoice)last;
@@ -366,7 +365,13 @@ public class RegexObjectGenerator {
 
 		}
 
-		RegexObject c = continuation.popHead();
+		RegexObject c;
+		if(continuation instanceof RegSeq){
+			c = continuation.popHead();
+		}else{
+			c = continuation;
+			continuation = new RegNull();
+		}
 		if(target instanceof RegSeq){
 			if(c == null){
 				target.add(continuation);
