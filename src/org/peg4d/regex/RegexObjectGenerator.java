@@ -11,14 +11,20 @@ public class RegexObjectGenerator {
 	private ParsingObject po;
 	private Map<String, RegexObject> rules;
 	private int ruleId = 1;
+	private int convertId = 1;
 	private int blockId = 1;
 	private int groupId = 1;
-	private final static String rulePrefix = "E";
+	private final static String rulePrefix = "R";
+	private final static String convertPrefix = "E";
 	private final static String blockPrefix = "B";
 	private final static String groupPrefix = "G";
 
 	public RegexObjectGenerator(ParsingObject po){
 		this.po = po;
+	}
+
+	private String createConvertId(){
+		return convertPrefix + convertId++;
 	}
 
 	private String createRuleId(){
@@ -189,7 +195,7 @@ public class RegexObjectGenerator {
 				return pi(e, unit);
 			}
 		}
-		if(last instanceof RegNonTerminal && !last.toString().startsWith(rulePrefix)){
+		if(last instanceof RegNonTerminal && !last.toString().startsWith(convertPrefix)){
 			 if(last.getChild() instanceof RegSeq){
 					RegSeq left = (RegSeq) last.getChild();
 					RegexObject converted = pi(left, new RegNull());
@@ -216,7 +222,7 @@ public class RegexObjectGenerator {
 					RegSeq tmp = new RegSeq();
 					tmp.push(pi(r, new RegNull()));
 					tmp.push(k);
-					RegNonTerminal newRule = new RegNonTerminal(createRuleId());
+					RegNonTerminal newRule = new RegNonTerminal(createConvertId());
 					newRule.setChild(tmp);
 					tmp.setParent(newRule);
 					newRC.push(newRule);
@@ -237,7 +243,7 @@ public class RegexObjectGenerator {
 				RegSeq tmp = new RegSeq();
 				tmp.push(pi(r, new RegNull()));
 				tmp.push(k);
-				RegNonTerminal newRule = new RegNonTerminal(createRuleId());
+				RegNonTerminal newRule = new RegNonTerminal(createConvertId());
 				newRule.setChild(tmp);
 				tmp.setParent(newRule);
 				newRC.push(newRule);
@@ -256,7 +262,7 @@ public class RegexObjectGenerator {
 		}
 	}
 
-	private void sortChoice(ArrayList<RegexObject> list, RegexObject ro) {
+	private void sortChoice(ArrayList<RegexObject> list, RegexObject ro){
 		if(list.size() == 0){
 			list.add(ro);
 		}else{
@@ -272,5 +278,24 @@ public class RegexObjectGenerator {
 				list.add(i, ro);
 			}
 		}
+	}
+
+	private void pi2(RegexObject e, RegexObject k){
+		if(e.getQuantifier() != null && "Times".equals(e.getTag())){
+			if(e.contains(k)){
+				continuationBasedConversion(e, k);
+			}
+		}
+		if(e instanceof RegSeq){
+			pi2(e.get(e.size()-1), k);
+//		}else if(e instanceof RegChoice){
+//			for(RegexObject r: e.getList()){
+//				continuationBasedConversion(r, k);
+//			}
+//		}
+	}
+
+	private void continuationBasedConversion(RegexObject e, RegexObject k) {
+		// FIXME
 	}
 }

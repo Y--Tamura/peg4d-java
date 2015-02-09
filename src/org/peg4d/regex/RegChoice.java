@@ -17,7 +17,7 @@ public class RegChoice extends RegexObject {
 		StringBuilder sb = new StringBuilder();
 		for(int i = 0; i < this.size() - 1; i++) {
 			sb.append(this.get(i).getLetter());
-			sb.append(" /");
+			sb.append("/");
 		}
 		sb.append(this.get(this.size() - 1).getLetter());
 		return sb.toString();

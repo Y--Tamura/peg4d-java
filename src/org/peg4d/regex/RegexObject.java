@@ -164,5 +164,24 @@ public abstract class RegexObject {
 		}
 	}
 
+	public boolean contains(RegexObject obj){
+		if(obj == null || obj instanceof RegNull) return false;
+
+		StringBuilder thisSb = new StringBuilder();
+		StringBuilder objSb = new StringBuilder();
+
+		for(RegexObject r: list){
+			thisSb.append(r.getLetter());
+		}
+		for(RegexObject r: obj.getList()){
+			objSb.append(r.getLetter());
+		}
+
+		String thisLetter = thisSb.toString();
+		String objLetter = objSb.toString();
+
+		return objLetter.equals(thisLetter) || objLetter.startsWith(thisLetter) || thisLetter.startsWith(objLetter);
+	}
+
 	abstract String getLetter();
 }

@@ -13,27 +13,6 @@ public class RegSeq extends RegexObject {
 		super(po);
 	}
 
-	public boolean contains(RegexObject obj){
-		StringBuilder sbThis = new StringBuilder();
-		StringBuilder sbObj = new StringBuilder();
-		int count = 0;
-
-		for(RegexObject e: this.list){
-			sbThis.append(e.getLetter());
-			count++;
-		}
-
-		if(obj instanceof RegCharSet){
-			sbObj.append(obj.getLetter());
-		}
-//		else for(RegexObject e: obj.getList()){
-		else for(int i = 0; i < count; i++){
-			if(i < obj.size()) sbObj.append(obj.get(i).getLetter());
-		}
-
-		return sbThis.toString().equals(sbObj.toString());
-	}
-
 	@Override
 	public String getLetter() {
 		StringBuilder sb = new StringBuilder();

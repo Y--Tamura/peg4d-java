@@ -97,17 +97,4 @@ public class RegCharSet extends RegexObject {
 			return sb.toString();
 		}
 	}
-
-	public boolean contains(RegexObject obj) {
-		if (obj instanceof RegCharSet) {
-			RegCharSet that = (RegCharSet) obj;
-			boolean b = false;
-			for(String e: that.set.toArray(new String[that.set.size()])) {
-				b = b || this.set.contains(e);
-			}
-			return b;
-		}else{
-			return this.getLetter().equals(obj.get(0).getLetter());
-		}
-	}
 }
