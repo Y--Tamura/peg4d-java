@@ -190,7 +190,21 @@ public class RegexObjectGenerator {
 			}
 		}
 		if(last instanceof RegNonTerminal && !last.toString().startsWith(rulePrefix)){
-			if(last.getChild().get(0) instanceof RegChoice){
+			 if(last.getChild() instanceof RegSeq){
+					RegSeq left = (RegSeq) last.getChild();
+					RegexObject converted = pi(left, new RegNull());
+					rules.remove(last.toString());
+					if(k instanceof RegSeq){
+						k.pushHead(converted);
+						return pi(e, k);
+					}else{
+						RegSeq unit = new RegSeq();
+						unit.push(k);
+						unit.pushHead(converted);
+						return pi(e, unit);
+					}
+				}
+			 else if(last.getChild().get(0) instanceof RegChoice){
 				RegChoice target = (RegChoice)last.getChild().get(0);
 				ArrayList<RegexObject> rcList = new ArrayList<RegexObject>();
 				for(RegexObject r: target.getList()){
