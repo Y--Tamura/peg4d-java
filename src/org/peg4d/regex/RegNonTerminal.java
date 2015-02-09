@@ -41,7 +41,8 @@ public class RegNonTerminal extends RegexObject {
 
 	@Override
 	public String getLetter() {
-		if(this.child != null) return this.child.getLetter();
+		if(this.label.startsWith("R")) return this.label;
+		else if(this.child != null) return this.child.getLetter();
 		else return "";
 	}
 

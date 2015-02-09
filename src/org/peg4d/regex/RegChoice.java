@@ -14,6 +14,7 @@ public class RegChoice extends RegexObject {
 
 	@Override
 	public String getLetter() {
+		if(this.size() < 1) return "";
 		StringBuilder sb = new StringBuilder();
 		for(int i = 0; i < this.size() - 1; i++) {
 			sb.append(this.get(i).getLetter());

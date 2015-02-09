@@ -16,8 +16,12 @@ public class RegSeq extends RegexObject {
 	@Override
 	public String getLetter() {
 		StringBuilder sb = new StringBuilder();
+
+		if(this.size() < 1) return "";
+
 		for(RegexObject e: list) {
-			sb.append(e.getLetter());
+			String str = e.getLetter();
+			if(str != null) sb.append(e.getLetter());
 		}
 		return sb.toString();
 	}

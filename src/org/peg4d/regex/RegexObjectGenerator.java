@@ -46,6 +46,8 @@ public class RegexObjectGenerator {
 			rules = new TreeMap<String, RegexObject>();
 			RegexObject ro = generate(regex, token);
 			rules.put("TopLevel", pi(ro, new RegNull()));
+//			rules.put("TopLevel", pi2(new RegNull(), ro));
+//			rules.put("TopLevel", pi2(new RegNull(), pi(ro, new RegNull())));
 			return rules;
 		}else{
 			System.err.println("The input file isn't a regex file.");
@@ -280,22 +282,261 @@ public class RegexObjectGenerator {
 		}
 	}
 
-	private void pi2(RegexObject e, RegexObject k){
-		if(e.getQuantifier() != null && "Times".equals(e.getTag())){
-			if(e.contains(k)){
-				continuationBasedConversion(e, k);
+	private RegexObject pi2(RegexObject e, RegexObject k){
+		if( k == null || k instanceof RegNull){
+			return e;
+		}
+		RegexObject target = e;
+		RegexObject continuation = k;
+
+		if(target instanceof RegNonTerminal && !target.toString().startsWith(rulePrefix)){
+			RegNonTerminal targetNT = (RegNonTerminal) target;
+			if(targetNT.getIsa()== false && targetNT.getRefer() == false){
+				target = targetNT.getChild();
 			}
 		}
-		if(e instanceof RegSeq){
-			pi2(e.get(e.size()-1), k);
-//		}else if(e instanceof RegChoice){
-//			for(RegexObject r: e.getList()){
-//				continuationBasedConversion(r, k);
-//			}
-//		}
+		if(continuation instanceof RegNonTerminal && !target.toString().startsWith(rulePrefix)){
+			RegNonTerminal continuaitonNT = (RegNonTerminal) continuation;
+			if(continuaitonNT.getIsa()== false && continuaitonNT.getRefer() == false){
+				target = continuaitonNT.getChild();
+			}
+		}
+
+		if(target instanceof RegSeq && target.size() == 1){
+			target = e.get(0);
+		}
+
+		if(target instanceof RegSeq &&  !(target == null || target instanceof RegNull)) {
+			RegexObject targetLast = target.pop();
+			if(target.not == continuation.not && targetLast.contains(continuation)){
+				if(targetLast.getQuantifier() != null && !"Times".equals(targetLast.getTag())){
+					RegexObject tmp = continuation.popHead();
+					RegexObject tmp2 = continuation;
+					if(tmp == null){
+						target.push(continuationBasedConversion(targetLast, tmp, tmp2));
+						return target;
+					}else{
+						target.push(continuationBasedConversion(targetLast, tmp, tmp2));
+						target.push(tmp2);
+						return pi2(target, continuation);
+					}
+				}else{
+					target.push(targetLast);
+				}
+			}else{
+				target.push(targetLast);
+			}
+		}else{
+			if(target.not == continuation.not && target.contains(continuation)){
+				if(target.getQuantifier() != null && !"Times".equals(target.getTag())){
+					RegexObject tmp = continuation.popHead();
+					RegexObject tmp2 = continuation;
+					if(tmp == null){
+						return continuationBasedConversion(target, tmp, tmp2);
+					}else{
+						return pi2(continuationBasedConversion(target, tmp, tmp2), tmp2);
+					}
+				}
+			}
+
+		}
+
+		RegexObject c = continuation.popHead();
+		if(target instanceof RegSeq){
+			if(c == null){
+				target.add(continuation);
+				return target;
+			}
+			target.push(c);
+			return pi2(target, continuation);
+		}else{
+			RegSeq left = new RegSeq();
+			left.add(e);
+			if(c == null){
+				left.add(continuation);
+				return left;
+			}else{
+				left.add(c);
+				return pi2(left, continuation);
+			}
+		}
 	}
 
-	private void continuationBasedConversion(RegexObject e, RegexObject k) {
-		// FIXME
+/*	private RegexObject continuationBasedConversion(RegexObject Left, RegexObject Mid, RegexObject Right) {
+		RegNonTerminal nt = new RegNonTerminal(createRuleId());
+		RegexObject tmp;
+		String tag = Left.getTag();
+		Left.rmQuantifier();
+		Right.pushHead(nt);
+		switch(tag){
+		case "ZeroMoreL":	//a*a
+			tmp = nt;
+			createNewLongestZeroMoreRule(Left, Mid, nt);
+			return tmp;
+		case "ZeroMoreS":	//a*?a
+			tmp = nt;
+			createNewShortestZeroMoreRule(Mid, Left, nt);
+			return tmp;
+		case "OneMoreL":	//a+a
+			tmp = new RegSeq();
+			tmp.add(nt);
+			createNewLongestZeroMoreRule(Left, Mid, nt);
+			tmp.pushHead(Left);
+			return tmp;
+		case "OneMoreS":	//a+?a
+			tmp = new RegSeq();
+			tmp.add(nt);
+			createNewShortestZeroMoreRule(Left, Mid, nt);
+			tmp.pushHead(Left);
+			return Right;
+		case "OptionalL":	//a?a
+			tmp = nt;
+			createNewLongestOptionalRule(Left, Mid, nt);
+			return tmp;
+		case "OptionalS": 	//a??a
+			tmp = nt;
+			createNewShortestOptionalRule(Left, Mid, nt);
+			return tmp;
+		default:
+			System.err.print("Sorry!! An error occurred on conversion.");
+			return null;
+		}
+	}
+*/
+	private RegexObject continuationBasedConversion(RegexObject roLeft, RegexObject roMid ,RegexObject roRight){
+		RegNonTerminal nt = new RegNonTerminal(createRuleId());
+		RegexObject tmp;
+		switch(roLeft.getTag()){
+		case "ZeroMoreL":	//a*a
+			roLeft.rmQuantifier();
+			roRight.pushHead(nt);
+			tmp = nt;
+			createNewLongestZeroMoreRule(roLeft, roMid, nt);
+			roRight.popHead();
+			return tmp;
+		case "ZeroMoreS":	//a*?a
+			roLeft.rmQuantifier();
+			roRight.pushHead(nt);
+			tmp = nt;
+			createNewShortestZeroMoreRule(roMid, roLeft, nt);
+			roRight.popHead();
+			roRight.popHead();
+			return tmp;
+		case "OneMoreL":	//a+a
+			roLeft.rmQuantifier();
+			roRight.pushHead(nt);
+			tmp = new RegSeq();
+			tmp.add(nt);
+			createNewLongestZeroMoreRule(roLeft, roMid, nt);
+			roRight.popHead();
+			roRight.popHead();
+			tmp.pushHead(roLeft);
+			return tmp;
+		case "OneMoreS":	//a+?a
+			roLeft.rmQuantifier();
+			roRight.pushHead(nt);
+			tmp = new RegSeq();
+			tmp.add(nt);
+			createNewShortestZeroMoreRule(roLeft, roMid, nt);
+			roRight.popHead();
+			roRight.popHead();
+			tmp.pushHead(roLeft);
+			return tmp;
+		case "OptionalL":	//a?a
+			roLeft.rmQuantifier();
+			roRight.pushHead(nt);
+			tmp = nt;
+			createNewLongestOptionalRule(roLeft, roMid, nt);
+			roRight.popHead();
+			roRight.popHead();
+			return tmp;
+		case "OptionalS": 	//a??a
+			roLeft.rmQuantifier();
+			roRight.pushHead(nt);
+			tmp = nt;
+			createNewShortestOptionalRule(roLeft, roMid, nt);
+			roRight.popHead();
+			roRight.popHead();
+			return tmp;
+		default:
+			System.err.print("Sorry!! An error occurred on conversion(NT).");
+			return null;
+		}
+	}
+
+	private void createNewLongestZeroMoreRule(RegexObject rHead, RegNonTerminal nt) {
+		this.createNewLongestZeroMoreRule(rHead, rHead, nt);
+	}
+
+	private void createNewLongestZeroMoreRule(RegexObject rHead, RegexObject rTail, RegNonTerminal nt) {
+		//E0 = a E0 / a
+		RegSeq newRule = new RegSeq();
+		RegChoice choice = new RegChoice();
+		RegSeq s1 = new RegSeq();
+		s1.add(rHead);
+		s1.add(nt);
+		RegSeq s2 = new RegSeq();
+		s2.add(rTail);
+		choice.add(s1);
+		choice.add(s2);
+		newRule.add(choice);
+		rules.put(nt.toString(), newRule);
+	}
+
+	private void createNewShortestZeroMoreRule(RegexObject rHead, RegNonTerminal nt) {
+		this.createNewShortestZeroMoreRule(rHead, rHead, nt);
+	}
+
+	private void createNewShortestZeroMoreRule(RegexObject rHead, RegexObject rTail, RegNonTerminal nt) {
+		//E0 = a / a E0
+		RegSeq newRule = new RegSeq();
+		RegChoice choice = new RegChoice();
+		RegSeq s1 = new RegSeq();
+		s1.add(rTail);
+		RegSeq s2 = new RegSeq();
+		s2.add(rHead);
+		s2.add(nt);
+		choice.add(s1);
+		choice.add(s2);
+		newRule.add(choice);
+		rules.put(nt.toString(), newRule);
+	}
+
+	private void createNewLongestOptionalRule(RegexObject rHead, RegNonTerminal nt) {
+		this.createNewLongestOptionalRule(rHead, rHead, nt);
+	}
+
+	private void createNewLongestOptionalRule(RegexObject rHead, RegexObject rTail, RegNonTerminal nt) {
+		//E0 = a a / a
+		RegSeq newRule = new RegSeq();
+		RegChoice choice = new RegChoice();
+		RegSeq s1 = new RegSeq();
+		s1.add(rHead);
+		s1.add(rTail);
+		RegSeq s2 = new RegSeq();
+		s2.add(rTail);
+		choice.add(s1);
+		choice.add(s2);
+		newRule.add(choice);
+		rules.put(nt.toString(), newRule);
+	}
+
+	private void createNewShortestOptionalRule(RegexObject rHead, RegNonTerminal nt) {
+		this.createNewShortestOptionalRule(rHead, rHead, nt);
+	}
+
+	private void createNewShortestOptionalRule(RegexObject rHead, RegexObject rTail, RegNonTerminal nt) {
+		//E0 = a / a a
+		RegSeq newRule = new RegSeq();
+		RegChoice choice = new RegChoice();
+		RegSeq s1 = new RegSeq();
+		s1.add(rTail);
+		RegSeq s2 = new RegSeq();
+		s2.add(rHead);
+		s2.add(rTail);
+		choice.add(s1);
+		choice.add(s2);
+		newRule.add(choice);
+		rules.put(nt.toString(), newRule);
 	}
 }
