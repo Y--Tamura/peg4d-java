@@ -8,7 +8,7 @@ import org.peg4d.ParsingObject;
 public abstract class RegexObject {
 
 	protected boolean writePegMode;
-	protected List<RegexObject> list;
+	protected List<RegexObject> list = null;
 	protected ParsingObject ref;
 	protected Quantifier quantifier;
 	protected RegexObject parent;
@@ -55,6 +55,8 @@ public abstract class RegexObject {
 	}
 
 	public RegexObject get(int i) {
+		if(this.list == null) return new RegNull();
+		else if(i >= this.size()) return new RegNull();
 		return this.list.get(i);
 	}
 

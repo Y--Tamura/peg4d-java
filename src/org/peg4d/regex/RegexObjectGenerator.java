@@ -307,7 +307,7 @@ public class RegexObjectGenerator {
 	}
 
 	private RegexObject pi2(RegexObject e, RegexObject k){
-		if( k == null || k instanceof RegNull){
+		if( k == null || k instanceof RegNull || (k instanceof RegSeq && "".equals(k.toString()))){
 			return e;
 		}
 		RegexObject target = e;
@@ -326,13 +326,47 @@ public class RegexObjectGenerator {
 			}
 		}
 
-		if(target instanceof RegSeq && target.size() == 1){
-			target = e.get(0);
+		if(target instanceof RegSeq){
+			if(target.size() == 1) {
+				Quantifier targetQ = target.getQuantifier();
+				if(target.get(0).getQuantifier() == null){
+					target = e.get(0);
+					if(target != null && targetQ != null){
+						target.setQuantifier(targetQ);
+					}else{
+						RegexObject tmp = pi2(target, continuation);
+						tmp.setQuantifier(targetQ);
+						return tmp;
+					}
+				}else if(target.get(0).get(0) != null){
+					RegexObject tmp = pi2(target.get(0), continuation);
+					tmp.setQuantifier(targetQ);
+					return tmp;
+				}
+			}else{
+				Quantifier targetQ = target.getQuantifier();
+				target.rmQuantifier();
+				RegexObject targetHead = target.get(0);
+				RegexObject targetCo = target.getContinuation();
+				RegexObject tmp = pi2(targetHead, targetCo);
+				if(targetQ != null){
+					if(tmp.getQuantifier() == null){
+						tmp.setQuantifier(targetQ);
+						target = tmp;
+					}else{
+						RegSeq tmpSq = new RegSeq();
+						tmpSq.add(tmp);
+						tmpSq.setQuantifier(targetQ);
+						target = tmpSq;
+					}
+				}
+			}
 		}
 
-		if(target instanceof RegSeq &&  !(target == null || target instanceof RegNull)) {
+		if(target != null && target instanceof RegSeq) {
 			RegexObject targetLast = target.pop();
-			if(target.not == continuation.not && targetLast.contains(continuation)){
+//			if(!(continuation.get(0) instanceof RegNull) && continuation.get(0).getQuantifier() == null && target.not == continuation.not && targetLast.contains(continuation)){
+			if(targetLast != null && target.not == continuation.not && targetLast.contains(continuation)){
 				if(targetLast.getQuantifier() != null && !"Times".equals(targetLast.getTag())){
 					RegexObject tmp = continuation.popHead();
 					RegexObject tmp2 = continuation;
@@ -349,16 +383,23 @@ public class RegexObjectGenerator {
 				}
 			}else{
 				target.push(targetLast);
+				Quantifier targetQ = target.getQuantifier();
+				target.rmQuantifier();
+				if(target.size() > 1){
+					target = pi2(new RegNull(), target);
+				}
+				target.setQuantifier(targetQ);
 			}
 		}else{
-			if(target.not == continuation.not && target.contains(continuation)){
+			if(target != null && target.not == continuation.not && target.contains(continuation)){
+//			if(!(continuation.get(0) instanceof RegNull) && continuation.get(0).getQuantifier() == null && target.not == continuation.not && target.contains(continuation)){
 				if(target.getQuantifier() != null && !"Times".equals(target.getTag())){
 					RegexObject tmp = continuation.popHead();
 					RegexObject tmp2 = continuation;
 					if(tmp == null){
 						return continuationBasedConversion(target, tmp, tmp2);
 					}else{
-						return pi2(continuationBasedConversion(target, tmp, tmp2), tmp2);
+						return pi2(continuationBasedConversion(target, tmp, tmp2), new RegNull());
 					}
 				}
 			}
@@ -366,29 +407,20 @@ public class RegexObjectGenerator {
 		}
 
 		RegexObject c;
-		if(continuation instanceof RegSeq){
+		if(continuation instanceof RegSeq && continuation.getQuantifier() == null){
 			c = continuation.popHead();
 		}else{
 			c = continuation;
 			continuation = new RegNull();
 		}
-		if(target instanceof RegSeq){
-			if(c == null){
-				target.add(continuation);
-				return target;
-			}
-			target.push(c);
-			return pi2(target, continuation);
+		RegSeq left = new RegSeq();
+		left.add(target);
+		if(c == null){
+			left.add(continuation);
+			return left;
 		}else{
-			RegSeq left = new RegSeq();
-			left.add(e);
-			if(c == null){
-				left.add(continuation);
-				return left;
-			}else{
-				left.add(c);
-				return pi2(left, continuation);
-			}
+			left.add(c);
+			return pi2(left, continuation);
 		}
 	}
 
@@ -404,66 +436,46 @@ public class RegexObjectGenerator {
 		}
 		RegNonTerminal nt = new RegNonTerminal(createRuleId());
 		RegexObject tmp;
+		RegexObject continuation = pi2(roMid, roRight);
 		switch(roLeft.getTag()){
 		case "ZeroMoreL":	//a*a
 			roLeft.rmQuantifier();
-			roRight.pushHead(nt);
 			tmp = nt;
-			createNewLongestZeroMoreRule(roLeft, roMid, nt);
-			roRight.popHead();
+			createNewLongestZeroMoreRule(roLeft, continuation, nt);
 			return tmp;
 		case "ZeroMoreS":	//a*?a
 			roLeft.rmQuantifier();
-			roRight.pushHead(nt);
 			tmp = nt;
-			createNewShortestZeroMoreRule(roMid, roLeft, nt);
-			roRight.popHead();
-			roRight.popHead();
+			createNewShortestZeroMoreRule(roLeft, continuation, nt);
 			return tmp;
 		case "OneMoreL":	//a+a
 			roLeft.rmQuantifier();
-			roRight.pushHead(nt);
 			tmp = new RegSeq();
 			tmp.add(nt);
-			createNewLongestZeroMoreRule(roLeft, roMid, nt);
-			roRight.popHead();
-			roRight.popHead();
+			createNewLongestZeroMoreRule(roLeft, continuation, nt);
 			tmp.pushHead(roLeft);
 			return tmp;
 		case "OneMoreS":	//a+?a
 			roLeft.rmQuantifier();
-			roRight.pushHead(nt);
 			tmp = new RegSeq();
 			tmp.add(nt);
-			createNewShortestZeroMoreRule(roLeft, roMid, nt);
-			roRight.popHead();
-			roRight.popHead();
+			createNewShortestZeroMoreRule(roLeft, continuation, nt);
 			tmp.pushHead(roLeft);
 			return tmp;
 		case "OptionalL":	//a?a
 			roLeft.rmQuantifier();
-			roRight.pushHead(nt);
 			tmp = nt;
-			createNewLongestOptionalRule(roLeft, roMid, nt);
-			roRight.popHead();
-			roRight.popHead();
+			createNewLongestOptionalRule(roLeft, continuation, nt);
 			return tmp;
 		case "OptionalS": 	//a??a
 			roLeft.rmQuantifier();
-			roRight.pushHead(nt);
 			tmp = nt;
-			createNewShortestOptionalRule(roLeft, roMid, nt);
-			roRight.popHead();
-			roRight.popHead();
+			createNewShortestOptionalRule(roLeft, continuation, nt);
 			return tmp;
 		default:
 			System.err.print("Sorry!! An error occurred on conversion(NT).");
 			return null;
 		}
-	}
-
-	private void createNewLongestZeroMoreRule(RegexObject rHead, RegNonTerminal nt) {
-		this.createNewLongestZeroMoreRule(rHead, rHead, nt);
 	}
 
 	private void createNewLongestZeroMoreRule(RegexObject rHead, RegexObject rTail, RegNonTerminal nt) {
@@ -483,10 +495,6 @@ public class RegexObjectGenerator {
 		rules.put(nt.toString(), newRule);
 	}
 
-	private void createNewShortestZeroMoreRule(RegexObject rHead, RegNonTerminal nt) {
-		this.createNewShortestZeroMoreRule(rHead, rHead, nt);
-	}
-
 	private void createNewShortestZeroMoreRule(RegexObject rHead, RegexObject rTail, RegNonTerminal nt) {
 		//E0 = a / a E0
 		RegSeq newRule = new RegSeq();
@@ -499,11 +507,9 @@ public class RegexObjectGenerator {
 		choice.add(s1);
 		choice.add(s2);
 		newRule.add(choice);
+		nt.setChild(newRule);
+		newRule.setParent(nt);
 		rules.put(nt.toString(), newRule);
-	}
-
-	private void createNewLongestOptionalRule(RegexObject rHead, RegNonTerminal nt) {
-		this.createNewLongestOptionalRule(rHead, rHead, nt);
 	}
 
 	private void createNewLongestOptionalRule(RegexObject rHead, RegexObject rTail, RegNonTerminal nt) {
@@ -518,11 +524,9 @@ public class RegexObjectGenerator {
 		choice.add(s1);
 		choice.add(s2);
 		newRule.add(choice);
+		nt.setChild(newRule);
+		newRule.setParent(nt);
 		rules.put(nt.toString(), newRule);
-	}
-
-	private void createNewShortestOptionalRule(RegexObject rHead, RegNonTerminal nt) {
-		this.createNewShortestOptionalRule(rHead, rHead, nt);
 	}
 
 	private void createNewShortestOptionalRule(RegexObject rHead, RegexObject rTail, RegNonTerminal nt) {
@@ -537,6 +541,8 @@ public class RegexObjectGenerator {
 		choice.add(s1);
 		choice.add(s2);
 		newRule.add(choice);
+		nt.setChild(newRule);
+		newRule.setParent(nt);
 		rules.put(nt.toString(), newRule);
 	}
 }
