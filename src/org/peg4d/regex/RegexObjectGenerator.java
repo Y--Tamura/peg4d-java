@@ -45,9 +45,9 @@ public class RegexObjectGenerator {
 		if("Regex".equals(token.getTag().toString())){
 			rules = new TreeMap<String, RegexObject>();
 			RegexObject ro = generate(regex, token);
-			rules.put("TopLevel", pi(ro, new RegNull()));
+//			rules.put("TopLevel", pi(ro, new RegNull()));
 //			rules.put("TopLevel", pi2(new RegNull(), ro));
-//			rules.put("TopLevel", pi2(new RegNull(), pi(ro, new RegNull())));
+			rules.put("TopLevel", pi2(new RegNull(), pi(ro, new RegNull())));
 			return rules;
 		}else{
 			System.err.println("The input file isn't a regex file.");
@@ -201,6 +201,10 @@ public class RegexObjectGenerator {
 			 if(last.getChild() instanceof RegSeq){
 					RegSeq left = (RegSeq) last.getChild();
 					RegexObject converted = pi(left, new RegNull());
+					if(last.getQuantifier() != null){
+						converted.setQuantifier(last.getQuantifier());
+						last.rmQuantifier();
+					}
 					rules.remove(last.toString());
 					if(k instanceof RegSeq){
 						k.pushHead(converted);
@@ -220,6 +224,12 @@ public class RegexObjectGenerator {
 				}
 				RegChoice newRC = new RegChoice();
 				RegexObject[] rcArray = rcList.toArray(new RegexObject[rcList.size()]);
+				Quantifier lastQ;
+				if(last.getQuantifier() != null){
+					lastQ = last.getQuantifier();
+				}else{
+					lastQ = null;
+				}
 				for(RegexObject r: rcArray){
 					RegSeq tmp = new RegSeq();
 					tmp.push(pi(r, new RegNull()));
@@ -228,8 +238,12 @@ public class RegexObjectGenerator {
 					newRule.setChild(tmp);
 					tmp.setParent(newRule);
 					newRC.push(newRule);
+					if(lastQ != null){
+						tmp.setQuantifier(lastQ);
+					}
 					rules.put(newRule.toString(), tmp);
 				}
+				last.rmQuantifier();
 				rules.remove(last.toString());
 				return pi(e, newRC);
 			}
@@ -241,6 +255,12 @@ public class RegexObjectGenerator {
 			}
 			RegChoice newRC = new RegChoice();
 			RegexObject[] rcArray = rcList.toArray(new RegexObject[rcList.size()]);
+			Quantifier lastQ;
+			if(last.getQuantifier() != null){
+				lastQ = last.getQuantifier();
+			}else{
+				lastQ = null;
+			}
 			for(RegexObject r: rcArray){
 				RegSeq tmp = new RegSeq();
 				tmp.push(pi(r, new RegNull()));
@@ -249,8 +269,12 @@ public class RegexObjectGenerator {
 				newRule.setChild(tmp);
 				tmp.setParent(newRule);
 				newRC.push(newRule);
+				if(lastQ != null){
+					tmp.setQuantifier(lastQ);
+				}
 				rules.put(newRule.toString(), tmp);
 			}
+			last.rmQuantifier();
 			return pi(e, newRC);
 		}
 		if(k instanceof RegSeq){
