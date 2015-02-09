@@ -45,9 +45,9 @@ public class RegexObjectGenerator {
 		if("Regex".equals(token.getTag().toString())){
 			rules = new TreeMap<String, RegexObject>();
 			RegexObject ro = generate(regex, token);
-//			rules.put("TopLevel", pi(ro, new RegNull()));
-//			rules.put("TopLevel", pi2(new RegNull(), ro));
-			rules.put("TopLevel", pi2(new RegNull(), pi(ro, new RegNull())));
+			RegexObject pi = pi(ro, new RegNull());
+			RegexObject pi2 = pi2(new RegNull(), pi);
+			rules.put("TopLevel", pi2);
 			return rules;
 		}else{
 			System.err.println("The input file isn't a regex file.");
@@ -224,12 +224,13 @@ public class RegexObjectGenerator {
 				}
 				RegChoice newRC = new RegChoice();
 				RegexObject[] rcArray = rcList.toArray(new RegexObject[rcList.size()]);
-				Quantifier lastQ;
-				if(last.getQuantifier() != null){
-					lastQ = last.getQuantifier();
+				Quantifier targetQ;
+				if(target.getQuantifier() != null){
+					targetQ = target.getQuantifier();
 				}else{
-					lastQ = null;
+					targetQ = null;
 				}
+				target.rmQuantifier();
 				for(RegexObject r: rcArray){
 					RegSeq tmp = new RegSeq();
 					tmp.push(pi(r, new RegNull()));
@@ -238,13 +239,12 @@ public class RegexObjectGenerator {
 					newRule.setChild(tmp);
 					tmp.setParent(newRule);
 					newRC.push(newRule);
-					if(lastQ != null){
-						tmp.setQuantifier(lastQ);
+					if(targetQ != null){
+						tmp.setQuantifier(targetQ);
 					}
 					rules.put(newRule.toString(), tmp);
 				}
-				last.rmQuantifier();
-				rules.remove(last.toString());
+				rules.remove(target.toString());
 				return pi(e, newRC);
 			}
 		}else if(last instanceof RegChoice){
@@ -255,12 +255,14 @@ public class RegexObjectGenerator {
 			}
 			RegChoice newRC = new RegChoice();
 			RegexObject[] rcArray = rcList.toArray(new RegexObject[rcList.size()]);
-			Quantifier lastQ;
-			if(last.getQuantifier() != null){
-				lastQ = last.getQuantifier();
+			Quantifier targetQ;
+			if(target.getQuantifier() != null){
+				targetQ = target.getQuantifier();
 			}else{
-				lastQ = null;
+				targetQ = null;
 			}
+			target.rmQuantifier();
+			rules.remove(target.toString());
 			for(RegexObject r: rcArray){
 				RegSeq tmp = new RegSeq();
 				tmp.push(pi(r, new RegNull()));
@@ -269,12 +271,11 @@ public class RegexObjectGenerator {
 				newRule.setChild(tmp);
 				tmp.setParent(newRule);
 				newRC.push(newRule);
-				if(lastQ != null){
-					tmp.setQuantifier(lastQ);
+				if(targetQ != null){
+					tmp.setQuantifier(targetQ);
 				}
 				rules.put(newRule.toString(), tmp);
 			}
-			last.rmQuantifier();
 			return pi(e, newRC);
 		}
 		if(k instanceof RegSeq){
@@ -386,48 +387,16 @@ public class RegexObjectGenerator {
 		}
 	}
 
-/*	private RegexObject continuationBasedConversion(RegexObject Left, RegexObject Mid, RegexObject Right) {
-		RegNonTerminal nt = new RegNonTerminal(createRuleId());
-		RegexObject tmp;
-		String tag = Left.getTag();
-		Left.rmQuantifier();
-		Right.pushHead(nt);
-		switch(tag){
-		case "ZeroMoreL":	//a*a
-			tmp = nt;
-			createNewLongestZeroMoreRule(Left, Mid, nt);
-			return tmp;
-		case "ZeroMoreS":	//a*?a
-			tmp = nt;
-			createNewShortestZeroMoreRule(Mid, Left, nt);
-			return tmp;
-		case "OneMoreL":	//a+a
-			tmp = new RegSeq();
-			tmp.add(nt);
-			createNewLongestZeroMoreRule(Left, Mid, nt);
-			tmp.pushHead(Left);
-			return tmp;
-		case "OneMoreS":	//a+?a
-			tmp = new RegSeq();
-			tmp.add(nt);
-			createNewShortestZeroMoreRule(Left, Mid, nt);
-			tmp.pushHead(Left);
-			return Right;
-		case "OptionalL":	//a?a
-			tmp = nt;
-			createNewLongestOptionalRule(Left, Mid, nt);
-			return tmp;
-		case "OptionalS": 	//a??a
-			tmp = nt;
-			createNewShortestOptionalRule(Left, Mid, nt);
-			return tmp;
-		default:
-			System.err.print("Sorry!! An error occurred on conversion.");
-			return null;
-		}
-	}
-*/
 	private RegexObject continuationBasedConversion(RegexObject roLeft, RegexObject roMid ,RegexObject roRight){
+		if(roLeft == null){
+			roLeft = new RegNull();
+		}
+		if(roMid == null){
+			roMid = new RegNull();
+		}
+		if(roRight == null){
+			roRight = new RegNull();
+		}
 		RegNonTerminal nt = new RegNonTerminal(createRuleId());
 		RegexObject tmp;
 		switch(roLeft.getTag()){
@@ -504,6 +473,8 @@ public class RegexObjectGenerator {
 		choice.add(s1);
 		choice.add(s2);
 		newRule.add(choice);
+		nt.setChild(newRule);
+		newRule.setParent(nt);
 		rules.put(nt.toString(), newRule);
 	}
 

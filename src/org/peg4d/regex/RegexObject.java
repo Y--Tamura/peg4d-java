@@ -170,6 +170,10 @@ public abstract class RegexObject {
 		String thisLetter = this.getLetter();
 		String objLetter = obj.getLetter();
 
+		if(thisLetter == null || objLetter == null) return false;
+
+		if("".equals(thisLetter) || "".equals(objLetter)) return false;
+
 		return objLetter.equals(thisLetter) || objLetter.startsWith(thisLetter) || thisLetter.endsWith(objLetter);
 	}
 
