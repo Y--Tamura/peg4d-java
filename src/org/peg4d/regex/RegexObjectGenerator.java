@@ -206,7 +206,13 @@ public class RegexObjectGenerator {
 				}
 				RegChoice newRC = new RegChoice();
 				RegexObject[] rcArray = rcList.toArray(new RegexObject[rcList.size()]);
+				Quantifier lastQ;
 				Quantifier targetQ;
+				if(last.getQuantifier() != null){
+					lastQ = last.getQuantifier();
+				}else{
+					lastQ = null;
+				}
 				if(target.getQuantifier() != null){
 					targetQ = target.getQuantifier();
 				}else{
@@ -222,11 +228,19 @@ public class RegexObjectGenerator {
 					tmp.setParent(newRule);
 					newRC.push(newRule);
 					if(targetQ != null){
-						tmp.setQuantifier(targetQ);
+						tmp.get(0).setQuantifier(targetQ);
 					}
-					rules.put(newRule.toString(), tmp);
+					if(lastQ == null){
+						rules.put(newRule.toString(), tmp);
+					}else{
+						RegSeq tmpSq = new RegSeq();
+						tmpSq.add(tmp.popHead());
+						tmpSq.setQuantifier(lastQ);
+						tmp.pushHead(tmpSq);
+						rules.put(newRule.toString(), tmp);
+					}
 				}
-				rules.remove(last.toString());
+				rules.remove(((RegNonTerminal) last).getLabel());
 				return pi(e, newRC);
 			}else if(last.getChild() instanceof RegSeq){
 				RegSeq left = (RegSeq) last.getChild();
@@ -235,7 +249,7 @@ public class RegexObjectGenerator {
 					converted.setQuantifier(last.getQuantifier());
 					last.rmQuantifier();
 				}
-				rules.remove(last.toString());
+				rules.remove(((RegNonTerminal) last).getLabel());
 				if(k instanceof RegSeq){
 					k.pushHead(converted);
 					return pi(e, k);
@@ -292,9 +306,9 @@ public class RegexObjectGenerator {
 		if(list.size() == 0){
 			list.add(ro);
 		}else{
-			if(ro.getLetter().length() <= list.get(0).getLetter().length()){
+			if(ro.getLetter().length() >= list.get(0).getLetter().length()){
 				list.add(0, ro);
-			}else if(ro.getLetter().length() > list.get(list.size() -1).getLetter().length()){
+			}else if(ro.getLetter().length() < list.get(list.size() -1).getLetter().length()){
 				list.add(ro);
 			}else{
 				int i;
@@ -317,50 +331,25 @@ public class RegexObjectGenerator {
 			RegNonTerminal targetNT = (RegNonTerminal) target;
 			if(targetNT.getIsa()== false && targetNT.getRefer() == false){
 				target = targetNT.getChild();
+				rules.remove(targetNT.getLabel());
 			}
 		}
 		if(continuation instanceof RegNonTerminal && !target.toString().startsWith(rulePrefix)){
 			RegNonTerminal continuaitonNT = (RegNonTerminal) continuation;
 			if(continuaitonNT.getIsa()== false && continuaitonNT.getRefer() == false){
-				target = continuaitonNT.getChild();
+				continuation = continuaitonNT.getChild();
+				rules.remove(continuaitonNT.getLabel());
 			}
 		}
 
-		if(target instanceof RegSeq){
-			if(target.size() == 1) {
-				Quantifier targetQ = target.getQuantifier();
-				if(target.get(0).getQuantifier() == null){
-					target = e.get(0);
-					if(target != null && targetQ != null){
-						target.setQuantifier(targetQ);
-					}else{
-						RegexObject tmp = pi2(target, continuation);
-						tmp.setQuantifier(targetQ);
-						return tmp;
-					}
-				}else if(target.get(0).get(0) != null){
-					RegexObject tmp = pi2(target.get(0), continuation);
-					tmp.setQuantifier(targetQ);
-					return tmp;
-				}
-			}else{
-				Quantifier targetQ = target.getQuantifier();
-				target.rmQuantifier();
-				RegexObject targetHead = target.get(0);
-				RegexObject targetCo = target.getContinuation();
-				RegexObject tmp = pi2(targetHead, targetCo);
-				if(targetQ != null){
-					if(tmp.getQuantifier() == null){
-						tmp.setQuantifier(targetQ);
-						target = tmp;
-					}else{
-						RegSeq tmpSq = new RegSeq();
-						tmpSq.add(tmp);
-						tmpSq.setQuantifier(targetQ);
-						target = tmpSq;
-					}
-				}
-			}
+		if(target instanceof RegSeq && target.getQuantifier() == null){
+			target = target.get(0);
+		}
+
+		if(target instanceof RegSeq && target.getQuantifier() != null && target.get(0).getQuantifier() == null){
+			Quantifier targetQ = target.getQuantifier();
+			target = target.get(0);
+			target.setQuantifier(targetQ);
 		}
 
 		if(target != null && target instanceof RegSeq) {
