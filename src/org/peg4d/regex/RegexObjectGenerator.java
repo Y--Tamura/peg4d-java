@@ -429,20 +429,15 @@ public class RegexObjectGenerator {
 		if(hasRule || continuation == null || continuation instanceof RegNull){
 			switch(tag){
 			case "ZeroMoreL":
-				tmp = new RegSeq();
-				tmp.add(roLeft);
-				tmp.add(nt);
-				nt.setChild(tmp);
-				tmp.setParent(nt);
-				rules.put(nt.toString(), tmp);
+				nt.setChild(roLeft);
+				roLeft.setParent(nt);
+				roLeft.setQuantifier(leftQuantifier);
+				rules.put(nt.toString(), roLeft);
 				return nt;
-			case "ZeroMoreS":
-				tmp = new RegSeq();
-				tmp.add(roLeft);
-				tmp.add(nt);
-				nt.setChild(tmp);
-				tmp.setParent(nt);
-				rules.put(nt.toString(), tmp);
+			case "ZeroMoreS": //FIXME?
+				nt.setChild(roLeft);
+				roLeft.setParent(nt);
+				rules.put(nt.toString(), roLeft);
 				return nt;
 			case "OneMoreL":
 				nt.setChild(roLeft);
@@ -485,7 +480,7 @@ public class RegexObjectGenerator {
 				return tmp;
 			case "ZeroMoreS":	//a*?a
 				tmp = nt;
-				createNewShortestZeroMoreRule(continuation, roLeft, nt);
+				createNewShortestZeroMoreRule(roLeft, continuation, nt);
 				return tmp;
 			case "OneMoreL":	//a+a
 				tmp = new RegSeq();

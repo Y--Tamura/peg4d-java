@@ -135,7 +135,7 @@ public class Quantifier {
 	public String toString() {
 		String s = getSign();
 		if(s != null) {
-			if(s.endsWith("?")) return s.substring(0, s.length() -1);
+			if(s.length() == 2 && s.endsWith("?")) return s.substring(0, s.length() -1);
 			else return s;
 		} else {
 			return "";
