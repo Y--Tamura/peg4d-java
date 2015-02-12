@@ -340,7 +340,7 @@ public class RegexObjectGenerator {
 			}
 		}
 
-		if(target.getQuantifier() == null){
+		if(target.getQuantifier() == null || (target.get(0) != null && target.get(0).getQuantifier() == null)){
 			if( k == null || k instanceof RegNull || (k instanceof RegSeq && "".equals(k.toString()))){
 				return e;
 			}
@@ -356,7 +356,7 @@ public class RegexObjectGenerator {
 			target.setQuantifier(targetQ);
 		}
 
-		if(target != null && !(target instanceof RegNull)){
+		if(target != null && (!(target instanceof RegNull) || !(target instanceof RegNull))){
 			if(target instanceof RegSeq) {
 				Quantifier targetQuantifier = target.getQuantifier();
 				if(target.size() > 0){
@@ -375,7 +375,7 @@ public class RegexObjectGenerator {
 			}
 		}
 
-		if(target != null && !(target instanceof RegNull) || !(target instanceof RegNonTerminal)){
+		if(target != null && (!(target instanceof RegNull) && !(target instanceof RegNonTerminal))){
 			if(target.getQuantifier() != null && !"Times".equals(target.getTag())){
 				RegexObject tmp = continuation.popHead();
 				RegexObject tmp2 = continuation;
@@ -418,50 +418,99 @@ public class RegexObjectGenerator {
 		RegNonTerminal nt = new RegNonTerminal(createRuleId());
 		RegexObject tmp;
 		RegexObject continuation = pi2(roMid, roRight);
-		if(continuation == null || continuation instanceof RegNull){
-			nt.setChild(roLeft);
-			roLeft.setParent(nt);
-			rules.put(nt.toString(), roLeft);
-			return nt;
+		Boolean hasRule = false;
+		if(continuation instanceof RegSeq && continuation.get(0) != null && continuation.get(0) instanceof RegNonTerminal){
+			hasRule = true;
 		}
-		switch(roLeft.getTag()){
-		case "ZeroMoreL":	//a*a
-			roLeft.rmQuantifier();
-			tmp = nt;
-			createNewLongestZeroMoreRule(roLeft, continuation, nt);
-			return tmp;
-		case "ZeroMoreS":	//a*?a
-			roLeft.rmQuantifier();
-			tmp = nt;
-			createNewShortestZeroMoreRule(roLeft, continuation, nt);
-			return tmp;
-		case "OneMoreL":	//a+a
-			roLeft.rmQuantifier();
-			tmp = new RegSeq();
-			tmp.add(nt);
-			createNewLongestZeroMoreRule(roLeft, continuation, nt);
-			tmp.pushHead(roLeft);
-			return tmp;
-		case "OneMoreS":	//a+?a
-			roLeft.rmQuantifier();
-			tmp = new RegSeq();
-			tmp.add(nt);
-			createNewShortestZeroMoreRule(roLeft, continuation, nt);
-			tmp.pushHead(roLeft);
-			return tmp;
-		case "OptionalL":	//a?a
-			roLeft.rmQuantifier();
-			tmp = nt;
-			createNewLongestOptionalRule(roLeft, continuation, nt);
-			return tmp;
-		case "OptionalS": 	//a??a
-			roLeft.rmQuantifier();
-			tmp = nt;
-			createNewShortestOptionalRule(roLeft, continuation, nt);
-			return tmp;
-		default:
-			System.err.print("Sorry!! An error occurred on conversion(NT).");
-			return null;
+
+		String tag = roLeft.getTag().toString();
+		Quantifier leftQuantifier = roLeft.getQuantifier();
+		roLeft.rmQuantifier();
+		if(hasRule || continuation == null || continuation instanceof RegNull){
+			switch(tag){
+			case "ZeroMoreL":
+				tmp = new RegSeq();
+				tmp.add(roLeft);
+				tmp.add(nt);
+				nt.setChild(tmp);
+				tmp.setParent(nt);
+				rules.put(nt.toString(), tmp);
+				return nt;
+			case "ZeroMoreS":
+				tmp = new RegSeq();
+				tmp.add(roLeft);
+				tmp.add(nt);
+				nt.setChild(tmp);
+				tmp.setParent(nt);
+				rules.put(nt.toString(), tmp);
+				return nt;
+			case "OneMoreL":
+				nt.setChild(roLeft);
+				roLeft.setParent(nt);
+				roLeft.setQuantifier(leftQuantifier);
+				rules.put(nt.toString(), roLeft);
+				return nt;
+			case "OneMoreS": //FIXME?
+				RegSeq newRule = new RegSeq();
+				RegCharAny newCont = new RegCharAny();
+				newRule.add(newCont);
+				newRule.look = true;
+				newRule.not = true;
+				tmp = new RegSeq();
+				tmp.add(nt);
+				createNewShortestZeroMoreRule(roLeft, newRule, nt);
+				tmp.pushHead(roLeft);
+				return tmp;
+			case "OptionalL":
+				nt.setChild(roLeft);
+				roLeft.setParent(nt);
+				roLeft.setQuantifier(leftQuantifier);
+				rules.put(nt.toString(), roLeft);
+				return nt;
+			case "OptionalS":
+				nt.setChild(roLeft);
+				roLeft.setParent(nt);
+				roLeft.setQuantifier(new Quantifier("?"));
+				rules.put(nt.toString(), roLeft);
+				return nt;
+			default:
+				System.err.print("Sorry!! An error occurred on conversion(NT).");
+				return null;
+			}
+		}else{
+			switch(tag){
+			case "ZeroMoreL":	//a*a
+				tmp = nt;
+				createNewLongestZeroMoreRule(roLeft, continuation, nt);
+				return tmp;
+			case "ZeroMoreS":	//a*?a
+				tmp = nt;
+				createNewShortestZeroMoreRule(continuation, roLeft, nt);
+				return tmp;
+			case "OneMoreL":	//a+a
+				tmp = new RegSeq();
+				tmp.add(nt);
+				createNewLongestZeroMoreRule(roLeft, continuation, nt);
+				tmp.pushHead(roLeft);
+				return tmp;
+			case "OneMoreS":	//a+?a
+				tmp = new RegSeq();
+				tmp.add(nt);
+				createNewShortestZeroMoreRule(roLeft, continuation, nt);
+				tmp.pushHead(roLeft);
+				return tmp;
+			case "OptionalL":	//a?a
+				tmp = nt;
+				createNewLongestOptionalRule(roLeft, continuation, nt);
+				return tmp;
+			case "OptionalS": 	//a??a
+				tmp = nt;
+				createNewShortestOptionalRule(roLeft, continuation, nt);
+				return tmp;
+			default:
+				System.err.print("Sorry!! An error occurred on conversion(NT).");
+				return null;
+			}
 		}
 	}
 
@@ -469,33 +518,32 @@ public class RegexObjectGenerator {
 		//E0 = a E0 / a
 		RegSeq newRule = new RegSeq();
 		RegChoice choice = new RegChoice();
-			RegSeq s1 = new RegSeq();
-			s1.add(pi2(rHead, nt));
-			RegSeq s2 = new RegSeq();
-			s2.add(rTail);
-			choice.add(s1);
-			choice.add(s2);
-			newRule.add(choice);
-			nt.setChild(newRule);
-			newRule.setParent(nt);
-			rules.put(nt.toString(), newRule);
+		RegSeq s1 = new RegSeq();
+		s1.add(pi2(rHead, nt));
+		RegSeq s2 = new RegSeq();
+		s2.add(rTail);
+		choice.add(s1);
+		choice.add(s2);
+		newRule.add(choice);
+		nt.setChild(newRule);
+		newRule.setParent(nt);
+		rules.put(nt.toString(), newRule);
 	}
 
 	private void createNewShortestZeroMoreRule(RegexObject rHead, RegexObject rTail, RegNonTerminal nt) {
 		//E0 = a / a E0
 		RegSeq newRule = new RegSeq();
 		RegChoice choice = new RegChoice();
-			RegSeq s1 = new RegSeq();
-			s1.add(rTail);
-			RegSeq s2 = new RegSeq();
-			s2.add(rHead);
-			s2.add(nt);
-			choice.add(s1);
-			choice.add(s2);
-			newRule.add(choice);
-			nt.setChild(newRule);
-			newRule.setParent(nt);
-			rules.put(nt.toString(), newRule);
+		RegSeq s1 = new RegSeq();
+		s1.add(rTail);
+		RegSeq s2 = new RegSeq();
+		s2.add(pi2(rHead, nt));
+		choice.add(s1);
+		choice.add(s2);
+		newRule.add(choice);
+		nt.setChild(newRule);
+		newRule.setParent(nt);
+		rules.put(nt.toString(), newRule);
 	}
 
 	private void createNewLongestOptionalRule(RegexObject rHead, RegexObject rTail, RegNonTerminal nt) {

@@ -27,6 +27,33 @@ public class Quantifier {
 		}
 	}
 
+	public Quantifier(String s) {
+		switch(s){
+		case "*?":
+			this.label = "ZeroMoreS";
+			break;
+		case "*":
+			this.label = "ZeroMoreL";
+			break;
+		case "+?":
+			this.label = "OneMoreS";
+			break;
+		case "+":
+			this.label = "OneMoreL";
+			break;
+		case "??":
+			this.label = "OptionalS";
+			break;
+		case "?":
+			this.label = "OptionalL";
+			break;
+		default:
+			System.err.println("Unexpected quantifier :" + s);
+			this.label = null;
+		}
+		this.sign = s;
+	}
+
 	public String getLabel() {
 		return label;
 	}
@@ -108,7 +135,8 @@ public class Quantifier {
 	public String toString() {
 		String s = getSign();
 		if(s != null) {
-			return s;
+			if(s.endsWith("?")) return s.substring(0, s.length() -1);
+			else return s;
 		} else {
 			return "";
 		}
