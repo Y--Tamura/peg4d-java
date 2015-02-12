@@ -354,8 +354,7 @@ public class RegexObjectGenerator {
 
 		if(target != null && target instanceof RegSeq) {
 			RegexObject targetLast = target.pop();
-//			if(!(continuation.get(0) instanceof RegNull) && continuation.get(0).getQuantifier() == null && target.not == continuation.not && targetLast.contains(continuation)){
-			if(targetLast != null && target.not == continuation.not && targetLast.contains(continuation)){
+			if(targetLast != null){
 				if(targetLast.getQuantifier() != null && !"Times".equals(targetLast.getTag())){
 					RegexObject tmp = continuation.popHead();
 					RegexObject tmp2 = continuation;
@@ -380,8 +379,7 @@ public class RegexObjectGenerator {
 				target.setQuantifier(targetQ);
 			}
 		}else{
-			if(target != null && target.not == continuation.not && target.contains(continuation)){
-//			if(!(continuation.get(0) instanceof RegNull) && continuation.get(0).getQuantifier() == null && target.not == continuation.not && target.contains(continuation)){
+			if(target != null){
 				if(target.getQuantifier() != null && !"Times".equals(target.getTag())){
 					RegexObject tmp = continuation.popHead();
 					RegexObject tmp2 = continuation;
