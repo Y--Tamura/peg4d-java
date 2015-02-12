@@ -31,6 +31,19 @@ public abstract class RegexObject {
 		this.list = new ArrayList<RegexObject>();
 	}
 
+	public RegexObject() {
+		this.writePegMode = false;
+		this.look = false;
+		this.beginWith = false;
+		this.endWith = false;
+		this.not = false;
+		this.ref = null;
+		this.quantifier = null;
+		this.parent = null;
+		this.child = null;
+		this.list = new ArrayList<RegexObject>();
+	}
+
 	public void addQuantifier(ParsingObject po) {
 			if(is(po.get(0), "BeginWith")) {
 				beginWith = true;
@@ -87,7 +100,7 @@ public abstract class RegexObject {
 
 	public RegexObject popHead() {
 		if(this.size() > 0) return this.list.remove(0);
-		else return null;
+		else return new RegNull();
 	}
 
 	public void pushHead(RegexObject that) {

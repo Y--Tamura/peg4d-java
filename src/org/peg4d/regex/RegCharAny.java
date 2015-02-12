@@ -8,6 +8,10 @@ public class RegCharAny extends RegCharSet {
 		super(e);
 	}
 
+	public RegCharAny(){
+		super(".");
+	}
+
 	@Override
 	public String getLetter() {
 		return ".";
@@ -15,6 +19,7 @@ public class RegCharAny extends RegCharSet {
 
 	@Override
 	public String toString() {
-		return ".";
+		if(not) return "!.";
+		else return ".";
 	}
 }

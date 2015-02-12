@@ -15,6 +15,12 @@ public class RegCharSet extends RegexObject {
 		setCharSet(po.get(1).getText());
 	}
 
+	public RegCharSet(String s) {
+		super();
+		set = new LinkedHashSet<String>();
+		setCharSet(s);
+	}
+
 	private void setCharSet(String s) {
 		int i = 0;
 		int max = s.length() - 1;
