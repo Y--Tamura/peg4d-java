@@ -49,7 +49,7 @@ public class RegexPegGenerator extends Generator {
 
 	private void writeHeader() {
 		writeLn("File");
-		writeLn("    = _ TopLevel _");
+		writeLn("    = _ TopLevel _ NL?");
 		writeLn("");
 		writeLn("Chunk");
 		writeLn("    = TopLevel");
