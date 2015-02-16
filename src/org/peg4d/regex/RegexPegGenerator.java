@@ -8,6 +8,9 @@ import org.peg4d.writer.Generator;
 public class RegexPegGenerator extends Generator {
 
 	private Map<String, RegexObject> rules;
+	private final static String LINE = "Line";
+	private final static String MATCH = "Match";
+	private final static String UNMATCH = "Unmatch";
 
 	public RegexPegGenerator(String fileName, Map<String, RegexObject> rules) {
 		super(fileName);
@@ -23,11 +26,15 @@ public class RegexPegGenerator extends Generator {
 		writeHeader();
 		RegexObject r = rules.get("TopLevel");
 		r.setWriteMode(true);
-		writeLn("TopLevel");
+		String rule = r.toString();
+		writeLn(MATCH);
 		write("    = { ");
-		this.write(r.toString());
-		writeLn(" #Matched }");
-		writeLn("");
+		write(rule);
+		writeLn(" #Matched }\n");
+		writeLn(UNMATCH);
+		write("    = { ( !(");
+		write(rule);
+		writeLn(") !NL . )+ #Unmatched }\n");
 
 		for(Entry<String, RegexObject> s: rules.entrySet()) {
 			if(s.getKey().equals("TopLevel")) {
@@ -36,19 +43,36 @@ public class RegexPegGenerator extends Generator {
 			writeLn(s.getKey());
 			write("    = ");
 			s.getValue().setWriteMode(true);
-			writeLn(s.getValue().toString());
+			writeLn(s.getValue().toString() + "\n");
 		}
 	}
 
 	private void writeHeader() {
 		writeLn("File");
-		writeLn("    = { @TopLevel #Source } _");
+		writeLn("    = _ TopLevel _");
 		writeLn("");
 		writeLn("Chunk");
 		writeLn("    = TopLevel");
 		writeLn("");
 		writeLn("_");
-		writeLn("    = [ \\t\\r\\n]*");
-		writeLn("\n");
+		writeLn("    = [ \\t]*");
+		writeLn("");
+		writeLn("NL");
+		writeLn("    = [\\r\\n]+");
+		writeLn("");
+		writeLn("TopLevel");
+		write("    = { @");
+		write(LINE);
+		write(" ( _ NL? @");
+		write(LINE);
+		writeLn(" )* #Source }");
+		writeLn("");
+		writeLn(LINE);
+		write("    = { ( @");
+		write(MATCH);
+		write(" / _ @");
+		write(UNMATCH);
+		writeLn(" )+ #Line }\n");
 	}
+
 }
