@@ -5,7 +5,6 @@ import org.peg4d.ParsingObject;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.function.ToLongBiFunction;
 
 public class RegexObjectGenerator {
 
@@ -575,10 +574,11 @@ public class RegexObjectGenerator {
 		rules.put(nt.toString(), newRule);
 	}
 
+/*
 	private void createTerminalSequence(RegChoice newRule, RegexObject rHead, RegNonTerminal nt) {
 		newRule.add(rHead);
 		newRule.add(nt);
 		rules.put(nt.toString(), newRule);
 	}
-
+*/
 }
