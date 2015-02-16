@@ -34,7 +34,7 @@ public class RegexPegGenerator extends Generator {
 		writeLn(UNMATCH);
 		write("    = { ( !(");
 		write(rule);
-		writeLn(") !NL . )+ #Unmatched }\n");
+		writeLn(") !NL !_ . )+ #Unmatched }\n");
 
 		for(Entry<String, RegexObject> s: rules.entrySet()) {
 			if(s.getKey().equals("TopLevel")) {
@@ -49,30 +49,28 @@ public class RegexPegGenerator extends Generator {
 
 	private void writeHeader() {
 		writeLn("File");
-		writeLn("    = _ TopLevel _ NL?");
+		writeLn("    = _? TopLevel _? NL?");
 		writeLn("");
 		writeLn("Chunk");
 		writeLn("    = TopLevel");
 		writeLn("");
 		writeLn("_");
-		writeLn("    = [ \\t]*");
+		writeLn("    = [ \\t]+");
 		writeLn("");
 		writeLn("NL");
 		writeLn("    = [\\r\\n]+");
 		writeLn("");
 		writeLn("TopLevel");
-		write("    = { @");
+		write("    = { ( @");
 		write(LINE);
-		write(" ( _ NL? @");
-		write(LINE);
-		writeLn(" )* #Source }");
+		writeLn(" )+ #Source }");
 		writeLn("");
 		writeLn(LINE);
 		write("    = { ( @");
 		write(MATCH);
-		write(" / _ @");
+		write(" / @");
 		write(UNMATCH);
-		writeLn(" )+ #Line }\n");
+		writeLn(" / _? )+ #Line } NL?\n");
 	}
 
 }
