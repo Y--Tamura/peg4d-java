@@ -461,7 +461,8 @@ public class Main {
 			System.out.println("input file: " + InputFileName);
 			System.out.println("parsing...\n");
 			inputparse_n = System.nanoTime();
-			check();
+//			check();
+			parse();
 		}else{
 			System.out.println();
 		}
