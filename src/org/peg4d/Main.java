@@ -316,7 +316,7 @@ public class Main {
 		return new StringSource(InputString);
 	}
 
-	private static int StatTimes = 10;
+	private static int StatTimes = 1;
 
 	public static void check() {
 		Grammar peg = newGrammar();
@@ -329,16 +329,16 @@ public class Main {
 			ParsingContext context = null;
 			ParsingObject po = null;
 			long bestTime = Long.MAX_VALUE;
-			long t0 = System.currentTimeMillis();
+			long t0 = System.nanoTime();
 			for(int i = 0; i < StatTimes; i++) {
 				ParsingSource source = newParsingSource(peg);
 				context = new ParsingContext(source);
-				long t1 = System.currentTimeMillis();
+				long t1 = System.nanoTime();
 				context.setLogger(Logger);
 				context.match(peg, StartingPoint, new MemoizationManager());
-				long t2 = System.currentTimeMillis();
+				long t2 = System.nanoTime();
 				long t = t2 - t1;
-				Main.printVerbose("ErapsedTime", "" + t + "ms");
+				System.out.println("ErapsedTime " + t/1000 + "[\u00B5s]");
 				if(t < bestTime) {
 					bestTime = t;
 				}
@@ -346,7 +346,7 @@ public class Main {
 					break;
 				}
 			}
-			Logger.dump(bestTime, context, null);
+			System.out.println("   BestTime " + bestTime/1000 + "[\u00B5s]");
 			//ParsingWriter.writeAs(OutputWriterClass, OutputFileName, po);
 		}
 	}
@@ -377,16 +377,16 @@ public class Main {
 			ParsingContext context = null;
 			ParsingObject po = null;
 			long bestTime = Long.MAX_VALUE;
-			long t0 = System.currentTimeMillis();
+			long t0 = System.nanoTime();
 			for(int i = 0; i < StatTimes; i++) {
 				ParsingSource source = newParsingSource(peg);
 				context = new ParsingContext(source);
-				long t1 = System.currentTimeMillis();
+				long t1 = System.nanoTime();
 				context.setLogger(Logger);
 				po = context.parse(peg, StartingPoint, new MemoizationManager());
-				long t2 = System.currentTimeMillis();
+				long t2 = System.nanoTime();
 				long t = t2 - t1;
-				Main.printVerbose("ErapsedTime", "" + t + "ms");
+				System.out.println("ErapsedTime " + t/1000 + "[\u00B5s]");
 				if(t < bestTime) {
 					bestTime = t;
 				}
@@ -394,7 +394,7 @@ public class Main {
 					break;
 				}
 			}
-			Logger.dump(bestTime, context, po);
+			System.out.println("   BestTime " + bestTime/1000 + "[\u00B5s]");
 			ParsingWriter.writeAs(OutputWriterClass, OutputFileName, po);
 		}
 	}
@@ -461,7 +461,7 @@ public class Main {
 			System.out.println("input file: " + InputFileName);
 			System.out.println("parsing...\n");
 			inputparse_n = System.nanoTime();
-			parse();
+			check();
 		}else{
 			System.out.println();
 		}
