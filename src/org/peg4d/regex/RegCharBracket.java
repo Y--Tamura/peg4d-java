@@ -19,6 +19,7 @@ public class RegCharBracket extends RegCharSet {
 //				Set<String> oneof = new LinkedHashSet<String>();
 				int next = i + 1;
 				int next2 = i + 2;
+				int next3 = i + 3;
 				if(s.charAt(i)=='^'){
 					//exceptfor
 					this.not = true;
@@ -42,15 +43,35 @@ public class RegCharBracket extends RegCharSet {
 					//unicode
 					set.add(s.substring(i, i+6));
 					i += 6;
+				} else if(next3 < s.length() && "\\\\".equals(s.substring(i, next3))){
+					//escapedchar
+					set.add(s.substring(i, next3));
+					i += 4;
 				} else if(s.charAt(i)=='\\'){
 					//escapedchar
-					set.add(s.substring(i, next2));
+					char esc = s.charAt(next);
+					if(('A' <= esc && esc <= 'Z') || ('a' <= esc && esc <= 'z') ){
+						String e = "\\" + String.valueOf(esc);
+						set.add(e);
+					}else{
+						String e = String.valueOf(esc);
+						set.add(e);
+					}
 					i += 2;
-				} else {
+				}else if(s.charAt(i) == '\''){
+					String e = "\\'";
+					set.add(e);
+					i++;
+				}else {
 					set.add(String.valueOf(s.charAt(i)));
 					i++;
 				}
 			} while(i < s.length() - 1);
+
+			char bs = 0x5c;
+			if(set.remove(String.valueOf(bs))){
+				set.add("\\\\");
+			};
 	}
 
 	private void addClassChar(String className){

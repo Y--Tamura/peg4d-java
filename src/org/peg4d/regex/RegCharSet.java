@@ -12,12 +12,17 @@ public class RegCharSet extends RegexObject {
 	public RegCharSet(ParsingObject po) {
 		super(po);
 		set = new LinkedHashSet<String>();
-		setCharSet(po.get(1).getText());
+		String s = po.get(1).getText();
+//		if(s != null && s.startsWith("\\")) setCharSet("\\" + s);
+//		else setCharSet(s);
+		setCharSet(s);
 	}
 
 	public RegCharSet(String s) {
 		super();
 		set = new LinkedHashSet<String>();
+//		if(s != null && s.startsWith("\\")) setCharSet("\\" + s);
+//		else setCharSet(s);
 		setCharSet(s);
 	}
 
@@ -30,11 +35,17 @@ public class RegCharSet extends RegexObject {
 			token = c[i];
 			if(token == '\\'){
 	//			s = unicodeToStr(s);
-				char fix = c[i+1];
+				char fix;
+				if(c.length > i+1) fix = c[i+1];
+				else{
+					set.add("\\" + String.valueOf(token));
+					i++;
+					continue;
+				}
 				switch(fix){
 				case 'u':
 					char[] unicode = {'\\', 'u', c[i+2], c[i+3], c[i+4], c[i+5]};
-					String u = String.valueOf(unicode);
+					String u = "\\" + String.valueOf(unicode);
 					set.add(u);
 					i += 6;
 					break;
@@ -45,13 +56,26 @@ public class RegCharSet extends RegexObject {
 					break;
 				default:
 					char[] escape = {'\\', c[i+1]};
-					String e = String.valueOf(escape);
-					set.add(e);
-					i += 2;
+					if(escape[1] == '\\'){
+						set.add("\\\\");
+						i += 3;
+					}else if(('A' <= escape[1] && escape[1] <= 'Z') || ('a' <= escape[1] && escape[1] <= 'z') ){
+						String e = "\\" + String.valueOf(escape[1]);
+						set.add(e);
+						i += 2;
+					}else{
+						String e = String.valueOf(escape[1]);
+						set.add(e);
+						i += 2;
+					}
 					break;
 				}
 			}else{
-				set.add(String.valueOf(token));
+				if(token == '\''){
+					set.add("\\'");
+				}else {
+					set.add(String.valueOf(token));
+				}
 				i++;
 			}
 		}
@@ -61,6 +85,12 @@ public class RegCharSet extends RegexObject {
 		if(set.remove(String.valueOf(bs))){
 			set.add("\\\\");
 		};
+		/* 
+		for(String str: set){
+			if(str.startsWith("\\")){
+				str = "\\" + str;
+			}
+		} */
 	}
 
 //	private String unicodeToStr(String unicode){
