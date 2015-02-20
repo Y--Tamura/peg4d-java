@@ -38,6 +38,7 @@ EscapeLetter
 	= { UNICODE #Unicode }
 	/ { ASCII #ASCII }
 	/ { ESCAPE METACHARACTER #Symbol }
+	/ { ESCAPE SYMBOL #Symbol }
 //	/ { ESCAPE ('p' / 'P') '{' _ ('In' / 'Is')? ( @{CLASSNAME #ClassName} / @{UNICODECLASSNAME #UnicodeClassName} ) _ '}' #Class }	//Perl
 	/ { ESCAPE METALETTER #Letter }
 
@@ -72,7 +73,7 @@ METALETTER
 
 SYMBOL
 	= '&' !'&' / '/' / '@' / '_' / '#' / '%' / ',' / '-'
-	/ ':' / ';' / '<' / '>' / '=' / '~' / '`' / '"'
+	/ ':' / ';' / '<' / '>' / '=' / '~' / '`' / '"' / '!' / "'"
 
 UNICODE
 	= '\\u' HEXDIGIT HEXDIGIT HEXDIGIT HEXDIGIT
