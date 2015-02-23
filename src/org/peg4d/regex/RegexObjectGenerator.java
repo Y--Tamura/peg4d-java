@@ -45,9 +45,14 @@ public class RegexObjectGenerator {
 		if("Regex".equals(token.getTag().toString())){
 			rules = new TreeMap<String, RegexObject>();
 			RegexObject ro = generate(regex, token);
+/*
 			RegexObject pi = pi(ro, new RegNull());
 			RegexObject pi2 = pi2(new RegNull(), pi);
-			rules.put("TopLevel", pi2);
+*/
+			RegexObject pi2 = pi2(new RegNull(), ro);
+			RegexObject pi = pi(pi2, new RegNull());
+
+			rules.put("TopLevel", pi);
 			return rules;
 		}else{
 			System.err.println("The input file isn't a regex file.");
