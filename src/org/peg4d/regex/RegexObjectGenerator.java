@@ -346,7 +346,7 @@ public class RegexObjectGenerator {
 
 		if(target.getQuantifier() == null || (target.get(0) != null && target.get(0).getQuantifier() == null)){
 			if( k == null || k instanceof RegNull || (k instanceof RegSeq && "".equals(k.toString()))){
-				return e;
+				return target;
 			}
 		}
 
