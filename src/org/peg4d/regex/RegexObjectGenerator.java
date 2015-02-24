@@ -186,8 +186,15 @@ public class RegexObjectGenerator {
 	}
 
 	private RegexObject pi(RegexObject e, RegexObject k){
-		RegexObject last = e.pop();
-		if(last == null){
+		RegexObject last;
+		if(e instanceof RegSeq){
+		last = e.pop();
+		}else{
+			last = e;
+			e = new RegNull();
+		}
+
+		if(last == null || last instanceof RegNull){
 			return k;
 		}
 		if(last instanceof RegNonTerminal && (((RegNonTerminal) last).getIsa() || ((RegNonTerminal) last).getRefer())){
